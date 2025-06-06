@@ -19,7 +19,7 @@ impl Model for ILI9488Rgb565 {
     type ColorFormat = Rgb565;
     const FRAMEBUFFER_SIZE: (u16, u16) = (320, 480);
 
-    fn init<DELAY, DI>(
+    async fn init<DELAY, DI>(
         &mut self,
         di: &mut DI,
         delay: &mut DELAY,
@@ -38,10 +38,10 @@ impl Model for ILI9488Rgb565 {
             ));
         }
 
-        delay.delay_us(120_000);
+        delay.delay_us(120_000).await;
 
         let pf = PixelFormat::with_all(BitsPerPixel::from_rgb_color::<Self::ColorFormat>());
-        ili948x::init_common(di, delay, options, pf)
+        ili948x::init_common(di, delay, options, pf).await
     }
 }
 
@@ -49,7 +49,7 @@ impl Model for ILI9488Rgb666 {
     type ColorFormat = Rgb666;
     const FRAMEBUFFER_SIZE: (u16, u16) = (320, 480);
 
-    fn init<DELAY, DI>(
+    async fn init<DELAY, DI>(
         &mut self,
         di: &mut DI,
         delay: &mut DELAY,
@@ -68,9 +68,9 @@ impl Model for ILI9488Rgb666 {
             ));
         }
 
-        delay.delay_us(120_000);
+        delay.delay_us(120_000).await;
 
         let pf = PixelFormat::with_all(BitsPerPixel::from_rgb_color::<Self::ColorFormat>());
-        ili948x::init_common(di, delay, options, pf)
+        ili948x::init_common(di, delay, options, pf).await
     }
 }

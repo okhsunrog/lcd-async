@@ -31,7 +31,7 @@ impl Model for RM67162 {
     type ColorFormat = Rgb565;
     const FRAMEBUFFER_SIZE: (u16, u16) = (240, 536);
 
-    fn init<DELAY, DI>(
+    async fn init<DELAY, DI>(
         &mut self,
         di: &mut DI,
         delay: &mut DELAY,
@@ -52,34 +52,34 @@ impl Model for RM67162 {
 
         let madctl = SetAddressMode::from(options);
 
-        di.write_raw(0xFE, &[0x04])?;
-        di.write_raw(0x6A, &[0x00])?;
-        di.write_raw(0xFE, &[0x05])?;
-        di.write_raw(0xFE, &[0x07])?;
-        di.write_raw(0x07, &[0x4F])?;
-        di.write_raw(0xFE, &[0x01])?;
-        di.write_raw(0x2A, &[0x02])?;
-        di.write_raw(0x2B, &[0x73])?;
-        di.write_raw(0xFE, &[0x0A])?;
-        di.write_raw(0x29, &[0x10])?;
-        di.write_raw(0xFE, &[0x00])?;
-        di.write_raw(0x51, &[0xaf])?; // Set brightness
-        di.write_raw(0x53, &[0x20])?;
-        di.write_raw(0x35, &[0x00])?;
+        di.write_raw(0xFE, &[0x04]).await?;
+        di.write_raw(0x6A, &[0x00]).await?;
+        di.write_raw(0xFE, &[0x05]).await?;
+        di.write_raw(0xFE, &[0x07]).await?;
+        di.write_raw(0x07, &[0x4F]).await?;
+        di.write_raw(0xFE, &[0x01]).await?;
+        di.write_raw(0x2A, &[0x02]).await?;
+        di.write_raw(0x2B, &[0x73]).await?;
+        di.write_raw(0xFE, &[0x0A]).await?;
+        di.write_raw(0x29, &[0x10]).await?;
+        di.write_raw(0xFE, &[0x00]).await?;
+        di.write_raw(0x51, &[0xaf]).await?; // Set brightness
+        di.write_raw(0x53, &[0x20]).await?;
+        di.write_raw(0x35, &[0x00]).await?;
 
         let pf = PixelFormat::with_all(BitsPerPixel::from_rgb_color::<Self::ColorFormat>());
-        di.write_command(SetPixelFormat::new(pf))?;
+        di.write_command(SetPixelFormat::new(pf)).await?;
 
-        di.write_raw(0xC4, &[0x80])?; // enable SRAM access via SPI
+        di.write_raw(0xC4, &[0x80]).await?; // enable SRAM access via SPI
 
-        di.write_command(madctl)?;
+        di.write_command(madctl).await?;
 
-        di.write_command(SetInvertMode::new(options.invert_colors))?;
+        di.write_command(SetInvertMode::new(options.invert_colors)).await?;
 
-        di.write_command(ExitSleepMode)?;
-        delay.delay_us(120_000);
+        di.write_command(ExitSleepMode).await?;
+        delay.delay_us(120_000).await;
 
-        di.write_command(SetDisplayOn)?;
+        di.write_command(SetDisplayOn).await?;
 
         Ok(madctl)
     }

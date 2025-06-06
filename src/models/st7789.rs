@@ -19,7 +19,7 @@ impl Model for ST7789 {
     type ColorFormat = Rgb565;
     const FRAMEBUFFER_SIZE: (u16, u16) = (240, 320);
 
-    fn init<DELAY, DI>(
+    async fn init<DELAY, DI>(
         &mut self,
         di: &mut DI,
         delay: &mut DELAY,
@@ -40,25 +40,25 @@ impl Model for ST7789 {
 
         let madctl = SetAddressMode::from(options);
 
-        delay.delay_us(150_000);
+        delay.delay_us(150_000).await;
 
-        di.write_command(ExitSleepMode)?;
-        delay.delay_us(10_000);
+        di.write_command(ExitSleepMode).await?;
+        delay.delay_us(10_000).await;
 
         // set hw scroll area based on framebuffer size
-        di.write_command(madctl)?;
+        di.write_command(madctl).await?;
 
-        di.write_command(SetInvertMode::new(options.invert_colors))?;
+        di.write_command(SetInvertMode::new(options.invert_colors)).await?;
 
         let pf = PixelFormat::with_all(BitsPerPixel::from_rgb_color::<Self::ColorFormat>());
-        di.write_command(SetPixelFormat::new(pf))?;
-        delay.delay_us(10_000);
-        di.write_command(EnterNormalMode)?;
-        delay.delay_us(10_000);
-        di.write_command(SetDisplayOn)?;
+        di.write_command(SetPixelFormat::new(pf)).await?;
+        delay.delay_us(10_000).await;
+        di.write_command(EnterNormalMode).await?;
+        delay.delay_us(10_000).await;
+        di.write_command(SetDisplayOn).await?;
 
         // DISPON requires some time otherwise we risk SPI data issues
-        delay.delay_us(120_000);
+        delay.delay_us(120_000).await;
 
         Ok(madctl)
     }
