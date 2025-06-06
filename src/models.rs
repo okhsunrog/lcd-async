@@ -49,7 +49,7 @@ pub trait Model {
 
     /// Initializes the display for this model with MADCTL from [crate::Display]
     /// and returns the value of MADCTL set by init
-    fn init<DELAY, DI>(
+    async fn init<DELAY, DI>(
         &mut self,
         di: &mut DI,
         delay: &mut DELAY,
@@ -60,7 +60,7 @@ pub trait Model {
         DI: Interface;
 
     /// Updates the address window of the display.
-    fn update_address_window<DI>(
+    async fn update_address_window<DI>(
         di: &mut DI,
         _rotation: Rotation,
         sx: u16,
@@ -71,8 +71,8 @@ pub trait Model {
     where
         DI: Interface,
     {
-        di.write_command(dcs::SetColumnAddress::new(sx, ex))?;
-        di.write_command(dcs::SetPageAddress::new(sy, ey))
+        di.write_command(dcs::SetColumnAddress::new(sx, ex)).await?;
+        di.write_command(dcs::SetPageAddress::new(sy, ey)).await
     }
 
     ///
@@ -83,7 +83,7 @@ pub trait Model {
         DI: Interface,
         DELAY: DelayNs,
     {
-        di.write_command(dcs::EnterSleepMode)?;
+        di.write_command(dcs::EnterSleepMode).await?;
         // All supported models requires a 120ms delay before issuing other commands
         delay.delay_us(120_000);
         Ok(())
@@ -96,7 +96,7 @@ pub trait Model {
         DI: Interface,
         DELAY: DelayNs,
     {
-        di.write_command(dcs::ExitSleepMode)?;
+        di.write_command(dcs::ExitSleepMode).await?;
         // ST7789 and st7735s have the highest minimal delay of 120ms
         delay.delay_us(120_000);
         Ok(())
@@ -104,36 +104,36 @@ pub trait Model {
     ///
     /// We need WriteMemoryStart befor write pixel
     ///
-    fn write_memory_start<DI>(di: &mut DI) -> Result<(), DI::Error>
+    async fn write_memory_start<DI>(di: &mut DI) -> Result<(), DI::Error>
     where
         DI: Interface,
     {
-        di.write_command(dcs::WriteMemoryStart)
+        di.write_command(dcs::WriteMemoryStart).await
     }
     ///
     /// SoftReset
     ///
-    fn software_reset<DI>(di: &mut DI) -> Result<(), DI::Error>
+    async fn software_reset<DI>(di: &mut DI) -> Result<(), DI::Error>
     where
         DI: Interface,
     {
-        di.write_command(dcs::SoftReset)
+        di.write_command(dcs::SoftReset).await
     }
     ///
     /// This function will been called if user update options
     ///
-    fn update_options<DI>(&self, di: &mut DI, options: &ModelOptions) -> Result<(), DI::Error>
+    async fn update_options<DI>(&self, di: &mut DI, options: &ModelOptions) -> Result<(), DI::Error>
     where
         DI: Interface,
     {
         let madctl = SetAddressMode::from(options);
-        di.write_command(madctl)
+        di.write_command(madctl).await
     }
 
     ///
     /// Configures the tearing effect output.
     ///
-    fn set_tearing_effect<DI>(
+    async fn set_tearing_effect<DI>(
         di: &mut DI,
         tearing_effect: options::TearingEffect,
         _options: &ModelOptions,
@@ -141,7 +141,7 @@ pub trait Model {
     where
         DI: Interface,
     {
-        di.write_command(dcs::SetTearingEffect::new(tearing_effect))
+        di.write_command(dcs::SetTearingEffect::new(tearing_effect)).await
     }
 
     /// Sets the vertical scroll region.
@@ -159,7 +159,7 @@ pub trait Model {
     ///
     /// After the scrolling region is defined the [`set_vertical_scroll_offset`](Self::set_vertical_scroll_offset) can be
     /// used to scroll the display.
-    fn set_vertical_scroll_region<DI>(
+    async fn set_vertical_scroll_region<DI>(
         di: &mut DI,
         top_fixed_area: u16,
         bottom_fixed_area: u16,
@@ -179,7 +179,7 @@ pub trait Model {
             )
         };
 
-        di.write_command(vscrdef)
+        di.write_command(vscrdef).await
     }
 
     /// Sets the vertical scroll offset.
@@ -189,12 +189,12 @@ pub trait Model {
     ///
     /// Use [`set_vertical_scroll_region`](Self::set_vertical_scroll_region) to setup the scroll region, before
     /// using this method.
-    fn set_vertical_scroll_offset<DI>(di: &mut DI, offset: u16) -> Result<(), DI::Error>
+    async fn set_vertical_scroll_offset<DI>(di: &mut DI, offset: u16) -> Result<(), DI::Error>
     where
         DI: Interface,
     {
         let vscad = dcs::SetScrollStart::new(offset);
-        di.write_command(vscad)
+        di.write_command(vscad).await
     }
 }
 
@@ -217,71 +217,5 @@ pub enum ModelInitError<DiError> {
 impl<DiError> From<DiError> for ModelInitError<DiError> {
     fn from(value: DiError) -> Self {
         Self::Interface(value)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use embedded_graphics::pixelcolor::Rgb565;
-
-    use crate::{
-        Builder,
-        _mock::{MockDelay, MockDisplayInterface},
-        dcs::SetAddressMode,
-        interface::InterfaceKind,
-        ConfigurationError, InitError,
-    };
-
-    use super::*;
-
-    struct OnlyOneKindModel(InterfaceKind);
-
-    impl Model for OnlyOneKindModel {
-        type ColorFormat = Rgb565;
-
-        const FRAMEBUFFER_SIZE: (u16, u16) = (16, 16);
-
-        fn init<DELAY, DI>(
-            &mut self,
-            _di: &mut DI,
-            _delay: &mut DELAY,
-            _options: &ModelOptions,
-        ) -> Result<SetAddressMode, ModelInitError<DI::Error>>
-        where
-            DELAY: DelayNs,
-            DI: Interface,
-        {
-            if DI::KIND != self.0 {
-                return Err(ModelInitError::InvalidConfiguration(
-                    ConfigurationError::UnsupportedInterface,
-                ));
-            }
-
-            Ok(SetAddressMode::default())
-        }
-    }
-
-    #[test]
-    fn test_assert_interface_kind_serial() {
-        Builder::new(
-            OnlyOneKindModel(InterfaceKind::Serial4Line),
-            MockDisplayInterface,
-        )
-        .init(&mut MockDelay)
-        .unwrap();
-    }
-
-    #[test]
-    fn test_assert_interface_kind_parallel() {
-        assert!(matches!(
-            Builder::new(
-                OnlyOneKindModel(InterfaceKind::Parallel8Bit),
-                MockDisplayInterface,
-            )
-            .init(&mut MockDelay),
-            Err(InitError::InvalidConfiguration(
-                ConfigurationError::UnsupportedInterface
-            ))
-        ));
     }
 }

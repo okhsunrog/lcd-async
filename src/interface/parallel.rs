@@ -208,7 +208,7 @@ where
 
     const KIND: InterfaceKind = BUS::KIND;
 
-    fn send_command(&mut self, command: u8, args: &[u8]) -> Result<(), Self::Error> {
+    async fn send_command(&mut self, command: u8, args: &[u8]) -> Result<(), Self::Error> {
         self.dc.set_low().map_err(ParallelError::Dc)?;
         self.send_word(BUS::Word::from(command))?;
         self.dc.set_high().map_err(ParallelError::Dc)?;
@@ -220,7 +220,7 @@ where
         Ok(())
     }
 
-    fn send_pixels<const N: usize>(
+    async fn send_pixels<const N: usize>(
         &mut self,
         pixels: impl IntoIterator<Item = [Self::Word; N]>,
     ) -> Result<(), Self::Error> {
@@ -232,7 +232,7 @@ where
         Ok(())
     }
 
-    fn send_repeated_pixel<const N: usize>(
+    async fn send_repeated_pixel<const N: usize>(
         &mut self,
         pixel: [Self::Word; N],
         count: u32,
@@ -249,7 +249,7 @@ where
             }
             Ok(())
         } else {
-            self.send_pixels((0..count).map(|_| pixel))
+            self.send_pixels((0..count).map(|_| pixel)).await
         }
     }
 }

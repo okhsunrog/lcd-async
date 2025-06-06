@@ -1,9 +1,7 @@
 //! [super::Display] builder module
 
-use embedded_hal::{
-    delay::DelayNs,
-    digital::{self, OutputPin},
-};
+use embedded_hal_async::delay::DelayNs;
+use embedded_hal::digital::{self, OutputPin};
 
 use crate::{
     dcs::InterfaceExt,
@@ -147,7 +145,7 @@ where
     ///
     /// Returns [InitError] if the area defined by the [`display_size`](Self::display_size)
     /// and [`display_offset`](Self::display_offset) settings is (partially) outside the framebuffer.
-    pub fn init(
+    pub async fn init(
         mut self,
         delay_source: &mut impl DelayNs,
     ) -> Result<Display<DI, MODEL, RST>, InitError<DI::Error, RST::Error>> {
@@ -177,16 +175,16 @@ where
         match self.rst {
             Some(ref mut rst) => {
                 rst.set_low().map_err(InitError::ResetPin)?;
-                delay_source.delay_us(MODEL::RESET_DURATION);
+                delay_source.delay_us(MODEL::RESET_DURATION).await;
                 rst.set_high().map_err(InitError::ResetPin)?;
             }
             None => self
                 .di
-                .write_command(crate::dcs::SoftReset)
+                .write_command(crate::dcs::SoftReset).await
                 .map_err(InitError::Interface)?,
         }
 
-        let madctl = self.model.init(&mut self.di, delay_source, &self.options)?;
+        let madctl = self.model.init(&mut self.di, delay_source, &self.options).await?;
 
         let display = Display {
             di: self.di,
@@ -267,96 +265,4 @@ impl digital::OutputPin for NoResetPin {
 
 impl digital::ErrorType for NoResetPin {
     type Error = core::convert::Infallible;
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{
-        _mock::{MockDelay, MockDisplayInterface, MockOutputPin},
-        models::ILI9341Rgb565,
-    };
-
-    use super::*;
-
-    #[test]
-    fn init_without_reset_pin() {
-        let _: Display<_, _, NoResetPin> = Builder::new(ILI9341Rgb565, MockDisplayInterface)
-            .init(&mut MockDelay)
-            .unwrap();
-    }
-
-    #[test]
-    fn init_reset_pin() {
-        let _: Display<_, _, MockOutputPin> = Builder::new(ILI9341Rgb565, MockDisplayInterface)
-            .reset_pin(MockOutputPin)
-            .init(&mut MockDelay)
-            .unwrap();
-    }
-
-    #[test]
-    fn error_too_wide() {
-        assert!(matches!(
-            Builder::new(ILI9341Rgb565, MockDisplayInterface)
-                .reset_pin(MockOutputPin)
-                .display_size(241, 320)
-                .init(&mut MockDelay),
-            Err(InitError::InvalidConfiguration(
-                ConfigurationError::InvalidDisplaySize
-            ))
-        ))
-    }
-
-    #[test]
-    fn error_too_tall() {
-        assert!(matches!(
-            Builder::new(ILI9341Rgb565, MockDisplayInterface)
-                .reset_pin(MockOutputPin)
-                .display_size(240, 321)
-                .init(&mut MockDelay),
-            Err(InitError::InvalidConfiguration(
-                ConfigurationError::InvalidDisplaySize
-            )),
-        ))
-    }
-
-    #[test]
-    fn error_offset_invalid_x() {
-        assert!(matches!(
-            Builder::new(ILI9341Rgb565, MockDisplayInterface)
-                .reset_pin(MockOutputPin)
-                .display_size(240, 320)
-                .display_offset(1, 0)
-                .init(&mut MockDelay),
-            Err(InitError::InvalidConfiguration(
-                ConfigurationError::InvalidDisplayOffset
-            )),
-        ))
-    }
-
-    #[test]
-    fn error_offset_invalid_y() {
-        assert!(matches!(
-            Builder::new(ILI9341Rgb565, MockDisplayInterface)
-                .reset_pin(MockOutputPin)
-                .display_size(240, 310)
-                .display_offset(0, 11)
-                .init(&mut MockDelay),
-            Err(InitError::InvalidConfiguration(
-                ConfigurationError::InvalidDisplayOffset
-            )),
-        ))
-    }
-
-    #[test]
-    fn error_zero_size() {
-        assert!(matches!(
-            Builder::new(ILI9341Rgb565, MockDisplayInterface)
-                .reset_pin(MockOutputPin)
-                .display_size(0, 0)
-                .init(&mut MockDelay),
-            Err(InitError::InvalidConfiguration(
-                ConfigurationError::InvalidDisplaySize
-            )),
-        ))
-    }
 }

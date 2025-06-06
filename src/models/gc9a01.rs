@@ -19,7 +19,7 @@ impl Model for GC9A01 {
     type ColorFormat = Rgb565;
     const FRAMEBUFFER_SIZE: (u16, u16) = (240, 240);
 
-    fn init<DELAY, DI>(
+    async fn init<DELAY, DI>(
         &mut self,
         di: &mut DI,
         delay: &mut DELAY,
@@ -42,9 +42,9 @@ impl Model for GC9A01 {
 
         delay.delay_us(200_000);
 
-        di.write_raw(0xEF, &[])?; // inter register enable 2
-        di.write_raw(0xEB, &[0x14])?;
-        di.write_raw(0xFE, &[])?; // inter register enable 1
+        di.write_raw(0xEF, &[]).await?; // inter register enable 2
+        di.write_raw(0xEB, &[0x14]).await?;
+        di.write_raw(0xFE, &[]).await?; // inter register enable 1
         di.write_raw(0xEF, &[])?; // inter register enable 2
         di.write_raw(0xEB, &[0x14])?;
 

@@ -1,4 +1,5 @@
-use embedded_hal::{digital::OutputPin, spi::SpiDevice};
+use embedded_hal::digital::OutputPin;
+use embedded_hal_async::spi::SpiDevice;
 
 use super::{Interface, InterfaceKind};
 
@@ -51,15 +52,15 @@ where
 
     const KIND: InterfaceKind = InterfaceKind::Serial4Line;
 
-    fn send_command(&mut self, command: u8, args: &[u8]) -> Result<(), Self::Error> {
+    async fn send_command(&mut self, command: u8, args: &[u8]) -> Result<(), Self::Error> {
         self.dc.set_low().map_err(SpiError::Dc)?;
-        self.spi.write(&[command]).map_err(SpiError::Spi)?;
+        self.spi.write(&[command]).await.map_err(SpiError::Spi)?;
         self.dc.set_high().map_err(SpiError::Dc)?;
-        self.spi.write(args).map_err(SpiError::Spi)?;
+        self.spi.write(args).await.map_err(SpiError::Spi)?;
         Ok(())
     }
 
-    fn send_pixels<const N: usize>(
+    async fn send_pixels<const N: usize>(
         &mut self,
         pixels: impl IntoIterator<Item = [Self::Word; N]>,
     ) -> Result<(), Self::Error> {
@@ -80,12 +81,12 @@ where
                     break;
                 };
             }
-            self.spi.write(&self.buffer[..i]).map_err(SpiError::Spi)?;
+            self.spi.write(&self.buffer[..i]).await.map_err(SpiError::Spi)?;
         }
         Ok(())
     }
 
-    fn send_repeated_pixel<const N: usize>(
+    async fn send_repeated_pixel<const N: usize>(
         &mut self,
         pixel: [Self::Word; N],
         count: u32,
@@ -100,13 +101,13 @@ where
         let mut count = count;
         while count >= fill_count {
             self.spi
-                .write(&self.buffer[..filled_len])
+                .write(&self.buffer[..filled_len]).await
                 .map_err(SpiError::Spi)?;
             count -= fill_count;
         }
         if count != 0 {
             self.spi
-                .write(&self.buffer[..(count as usize * pixel.len())])
+                .write(&self.buffer[..(count as usize * pixel.len())]).await
                 .map_err(SpiError::Spi)?;
         }
         Ok(())

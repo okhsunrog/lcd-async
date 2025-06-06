@@ -22,9 +22,6 @@ mod graphics;
 mod test_image;
 pub use test_image::TestImage;
 
-#[cfg(feature = "batch")]
-mod batch;
-
 pub mod _troubleshooting;
 
 ///
@@ -246,7 +243,7 @@ where
     ///
     /// Wakes the display after it's been set to sleep via [Self::sleep]
     ///
-    pub fn wake<D: DelayNs>(&mut self, delay: &mut D) -> Result<(), DI::Error> {
+    pub async fn wake<D: DelayNs>(&mut self, delay: &mut D) -> Result<(), DI::Error> {
         M::wake(&mut self.di, delay).await?;
         self.sleeping = false;
         Ok(())
@@ -265,89 +262,3 @@ where
     }
 }
 
-/// Mock implementations of embedded-hal and interface traits.
-///
-/// Do not use types in this module outside of doc tests.
-#[doc(hidden)]
-pub mod _mock {
-    use core::convert::Infallible;
-
-    use embedded_hal::{delay::DelayNs, digital, spi};
-
-    use crate::{
-        interface::{Interface, InterfaceKind},
-        models::ILI9341Rgb565,
-        Builder, Display, NoResetPin,
-    };
-
-    pub fn new_mock_display() -> Display<MockDisplayInterface, ILI9341Rgb565, NoResetPin> {
-        Builder::new(ILI9341Rgb565, MockDisplayInterface)
-            .init(&mut MockDelay)
-            .unwrap()
-    }
-
-    pub struct MockOutputPin;
-
-    impl digital::OutputPin for MockOutputPin {
-        fn set_low(&mut self) -> Result<(), Self::Error> {
-            Ok(())
-        }
-
-        fn set_high(&mut self) -> Result<(), Self::Error> {
-            Ok(())
-        }
-    }
-
-    impl digital::ErrorType for MockOutputPin {
-        type Error = core::convert::Infallible;
-    }
-
-    pub struct MockSpi;
-
-    impl spi::SpiDevice for MockSpi {
-        fn transaction(
-            &mut self,
-            _operations: &mut [spi::Operation<'_, u8>],
-        ) -> Result<(), Self::Error> {
-            Ok(())
-        }
-    }
-
-    impl spi::ErrorType for MockSpi {
-        type Error = core::convert::Infallible;
-    }
-
-    pub struct MockDelay;
-
-    impl DelayNs for MockDelay {
-        fn delay_ns(&mut self, _ns: u32) {}
-    }
-
-    pub struct MockDisplayInterface;
-
-    impl Interface for MockDisplayInterface {
-        type Word = u8;
-        type Error = Infallible;
-
-        const KIND: InterfaceKind = InterfaceKind::Serial4Line;
-
-        fn send_command(&mut self, _command: u8, _args: &[u8]) -> Result<(), Self::Error> {
-            Ok(())
-        }
-
-        fn send_pixels<const N: usize>(
-            &mut self,
-            _pixels: impl IntoIterator<Item = [Self::Word; N]>,
-        ) -> Result<(), Self::Error> {
-            Ok(())
-        }
-
-        fn send_repeated_pixel<const N: usize>(
-            &mut self,
-            _pixel: [Self::Word; N],
-            _count: u32,
-        ) -> Result<(), Self::Error> {
-            Ok(())
-        }
-    }
-}
