@@ -14,6 +14,7 @@ pub use builder::*;
 
 pub mod dcs;
 
+pub mod raw_framebuf;
 pub mod models;
 use models::Model;
 
