@@ -85,7 +85,7 @@ pub trait Model {
     {
         di.write_command(dcs::EnterSleepMode).await?;
         // All supported models requires a 120ms delay before issuing other commands
-        delay.delay_us(120_000);
+        delay.delay_us(120_000).await;
         Ok(())
     }
     ///
@@ -98,7 +98,7 @@ pub trait Model {
     {
         di.write_command(dcs::ExitSleepMode).await?;
         // ST7789 and st7735s have the highest minimal delay of 120ms
-        delay.delay_us(120_000);
+        delay.delay_us(120_000).await;
         Ok(())
     }
     ///

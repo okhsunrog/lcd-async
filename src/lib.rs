@@ -73,9 +73,9 @@ where
     /// # let mut display = mipidsi::_mock::new_mock_display();
     /// display.set_orientation(Orientation::default().rotate(Rotation::Deg180)).unwrap();
     /// ```
-    pub fn set_orientation(&mut self, orientation: options::Orientation) -> Result<(), DI::Error> {
+    pub async fn set_orientation(&mut self, orientation: options::Orientation) -> Result<(), DI::Error> {
         self.options.orientation = orientation;
-        self.model.update_options(&mut self.di, &self.options)
+        self.model.update_options(&mut self.di, &self.options).await
     }
 
     ///
@@ -95,8 +95,8 @@ where
     /// # let mut display = mipidsi::_mock::new_mock_display();
     /// display.set_pixel(100, 200, Rgb565::new(251, 188, 20)).unwrap();
     /// ```
-    pub fn set_pixel(&mut self, x: u16, y: u16, color: M::ColorFormat) -> Result<(), DI::Error> {
-        self.set_pixels(x, y, x, y, core::iter::once(color))
+    pub async fn set_pixel(&mut self, x: u16, y: u16, color: M::ColorFormat) -> Result<(), DI::Error> {
+        self.set_pixels(x, y, x, y, core::iter::once(color)).await
     }
 
     ///
@@ -126,7 +126,7 @@ where
     /// result in undefined behavior.
     ///
     /// </div>
-    pub fn set_pixels<T>(
+    pub async fn set_pixels<T>(
         &mut self,
         sx: u16,
         sy: u16,
@@ -137,11 +137,11 @@ where
     where
         T: IntoIterator<Item = M::ColorFormat>,
     {
-        self.set_address_window(sx, sy, ex, ey)?;
+        self.set_address_window(sx, sy, ex, ey).await?;
 
-        M::write_memory_start(&mut self.di)?;
+        M::write_memory_start(&mut self.di).await?;
 
-        M::ColorFormat::send_pixels(&mut self.di, colors)
+        M::ColorFormat::send_pixels(&mut self.di, colors).await
     }
 
     /// Sets the vertical scroll region.
@@ -159,12 +159,12 @@ where
     ///
     /// After the scrolling region is defined the [`set_vertical_scroll_offset`](Self::set_vertical_scroll_offset) can be
     /// used to scroll the display.
-    pub fn set_vertical_scroll_region(
+    pub async fn set_vertical_scroll_region(
         &mut self,
         top_fixed_area: u16,
         bottom_fixed_area: u16,
     ) -> Result<(), DI::Error> {
-        M::set_vertical_scroll_region(&mut self.di, top_fixed_area, bottom_fixed_area)
+        M::set_vertical_scroll_region(&mut self.di, top_fixed_area, bottom_fixed_area).await
     }
 
     /// Sets the vertical scroll offset.
@@ -174,8 +174,8 @@ where
     ///
     /// Use [`set_vertical_scroll_region`](Self::set_vertical_scroll_region) to setup the scroll region, before
     /// using this method.
-    pub fn set_vertical_scroll_offset(&mut self, offset: u16) -> Result<(), DI::Error> {
-        M::set_vertical_scroll_offset(&mut self.di, offset)
+    pub async fn set_vertical_scroll_offset(&mut self, offset: u16) -> Result<(), DI::Error> {
+        M::set_vertical_scroll_offset(&mut self.di, offset).await
     }
 
     ///
@@ -187,7 +187,7 @@ where
     }
 
     // Sets the address window for the display.
-    fn set_address_window(&mut self, sx: u16, sy: u16, ex: u16, ey: u16) -> Result<(), DI::Error> {
+    async fn set_address_window(&mut self, sx: u16, sy: u16, ex: u16, ey: u16) -> Result<(), DI::Error> {
         // add clipping offsets if present
         let mut offset = self.options.display_offset;
         let mapping = MemoryMapping::from(self.options.orientation);
@@ -210,17 +210,17 @@ where
             sy,
             ex,
             ey,
-        )
+        ).await
     }
 
     ///
     /// Configures the tearing effect output.
     ///
-    pub fn set_tearing_effect(
+    pub async fn set_tearing_effect(
         &mut self,
         tearing_effect: options::TearingEffect,
     ) -> Result<(), DI::Error> {
-        M::set_tearing_effect(&mut self.di, tearing_effect, &self.options)
+        M::set_tearing_effect(&mut self.di, tearing_effect, &self.options).await
     }
 
     ///

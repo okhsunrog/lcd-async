@@ -261,7 +261,7 @@ impl Model for ILI9225Rgb565 {
 
         di.write_raw(ILI9225_DISP_CTRL1, &[high, low]).await
     }
-    fn set_vertical_scroll_region<DI>(
+    async fn set_vertical_scroll_region<DI>(
         _di: &mut DI,
         _top_fixed_area: u16,
         _bottom_fixed_area: u16,
@@ -272,7 +272,7 @@ impl Model for ILI9225Rgb565 {
         // Not support, ignore it
         Ok(())
     }
-    fn set_vertical_scroll_offset<DI>(_di: &mut DI, _offset: u16) -> Result<(), DI::Error>
+    async fn set_vertical_scroll_offset<DI>(_di: &mut DI, _offset: u16) -> Result<(), DI::Error>
     where
         DI: Interface,
     {
