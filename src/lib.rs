@@ -1,116 +1,8 @@
-#![no_std]
-// associated re-typing not supported in rust yet
-#![allow(clippy::type_complexity)]
-#![warn(missing_docs)]
-
-//! This crate provides a generic display driver to connect to TFT displays
-//! that implement the [MIPI Display Command Set](https://www.mipi.org/specifications/display-command-set).
-//!
-//! Uses implementations of the [interface::Interface] trait to talk to the
-//! hardware via different transports. Builtin support for these transports is
-//! available:
-//! - SPI ([`interface::SpiInterface`])
-//! - 8080 style parallel via GPIO ([`interface::ParallelInterface`])
-//!
-//! An optional batching of draws is supported via the `batch` feature (default on)
-//!
-//! ### List of supported models
-//!
-//! * GC9107
-//! * GC9A01
-//! * ILI9225
-//! * ILI9341
-//! * ILI9342C
-//! * ILI9486
-//! * ILI9488
-//! * RM67162
-//! * ST7735
-//! * ST7789
-//! * ST7796
-//!
-//! ## Troubleshooting
-//!
-//! Refer to the [troubleshooting guide](_troubleshooting)
-//! if you experience problems like a blank screen or incorrect colors.
-//!
-//! ## Examples
-//!
-//! **For the ili9486 display, using the SPI interface with no chip select:**
-//! ```
-//! use mipidsi::interface::SpiInterface;                    // Provides the builder for DisplayInterface
-//! use mipidsi::{Builder, models::ILI9486Rgb666};           // Provides the builder for Display
-//! use embedded_graphics::{prelude::*, pixelcolor::Rgb666}; // Provides the required color type
-//!
-//! /* Define the SPI interface as the variable `spi` */
-//! /* Define the DC digital output pin as the variable `dc` */
-//! /* Define the Reset digital output pin as the variable `rst` */
-//!# let spi = mipidsi::_mock::MockSpi;
-//!# let dc = mipidsi::_mock::MockOutputPin;
-//!# let rst = mipidsi::_mock::MockOutputPin;
-//!# let mut delay = mipidsi::_mock::MockDelay;
-//!
-//! // Create a buffer
-//! let mut buffer = [0_u8; 512];
-//!
-//! // Create a DisplayInterface from SPI and DC pin, with no manual CS control
-//! let di = SpiInterface::new(spi, dc, &mut buffer);
-//!
-//! // Create the ILI9486 display driver from the display interface and optional RST pin
-//! let mut display = Builder::new(ILI9486Rgb666, di)
-//!     .reset_pin(rst)
-//!     .init(&mut delay).unwrap();
-//!
-//! // Clear the display to black
-//! display.clear(Rgb666::BLACK).unwrap();
-//! ```
-//!
-//! **For the ili9341 display, using the Parallel port, with the RGB666 color space and the Bgr
-//! color order:**
-//! ```
-//! // Provides the builder for DisplayInterface
-//! use mipidsi::interface::{Generic8BitBus, ParallelInterface};
-//! // Provides the builder for Display
-//! use mipidsi::{Builder, models::ILI9341Rgb666};
-//! // Provides the required color type
-//! use embedded_graphics::{prelude::*, pixelcolor::Rgb666};
-//!
-//! /* Define digital output pins d0 - d7 for the parallel port as `lcd_dX` */
-//! /* Define the D/C digital output pin as `dc` */
-//! /* Define the WR and Reset digital output pins with the initial state set as High as `wr` and
-//! `rst` */
-//!# let lcd_d0 = mipidsi::_mock::MockOutputPin;
-//!# let lcd_d1 = mipidsi::_mock::MockOutputPin;
-//!# let lcd_d2 = mipidsi::_mock::MockOutputPin;
-//!# let lcd_d3 = mipidsi::_mock::MockOutputPin;
-//!# let lcd_d4 = mipidsi::_mock::MockOutputPin;
-//!# let lcd_d5 = mipidsi::_mock::MockOutputPin;
-//!# let lcd_d6 = mipidsi::_mock::MockOutputPin;
-//!# let lcd_d7 = mipidsi::_mock::MockOutputPin;
-//!# let wr = mipidsi::_mock::MockOutputPin;
-//!# let dc = mipidsi::_mock::MockOutputPin;
-//!# let rst = mipidsi::_mock::MockOutputPin;
-//!# let mut delay = mipidsi::_mock::MockDelay;
-//!
-//! // Create the DisplayInterface from a Generic8BitBus, which is made from the parallel pins
-//! let bus = Generic8BitBus::new((lcd_d0, lcd_d1, lcd_d2,
-//!     lcd_d3, lcd_d4, lcd_d5, lcd_d6, lcd_d7));
-//! let di = ParallelInterface::new(bus, dc, wr);
-//!
-//! // Create the ILI9341 display driver from the display interface with the RGB666 color space
-//! let mut display = Builder::new(ILI9341Rgb666, di)
-//!      .reset_pin(rst)
-//!      .color_order(mipidsi::options::ColorOrder::Bgr)
-//!      .init(&mut delay).unwrap();
-//!
-//! // Clear the display to black
-//! display.clear(Rgb666::RED).unwrap();
-//! ```
-
 use dcs::SetAddressMode;
 
 pub mod interface;
 
-use embedded_hal::delay::DelayNs;
+use embedded_hal_async::delay::DelayNs;
 use embedded_hal::digital::OutputPin;
 
 pub mod options;
@@ -345,8 +237,8 @@ where
     /// Puts the display to sleep, reducing power consumption.
     /// Need to call [Self::wake] before issuing other commands
     ///
-    pub fn sleep<D: DelayNs>(&mut self, delay: &mut D) -> Result<(), DI::Error> {
-        M::sleep(&mut self.di, delay)?;
+    pub async fn sleep<D: DelayNs>(&mut self, delay: &mut D) -> Result<(), DI::Error> {
+        M::sleep(&mut self.di, delay).await?;
         self.sleeping = true;
         Ok(())
     }
@@ -355,7 +247,7 @@ where
     /// Wakes the display after it's been set to sleep via [Self::sleep]
     ///
     pub fn wake<D: DelayNs>(&mut self, delay: &mut D) -> Result<(), DI::Error> {
-        M::wake(&mut self.di, delay)?;
+        M::wake(&mut self.di, delay).await?;
         self.sleeping = false;
         Ok(())
     }

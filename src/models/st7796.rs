@@ -1,5 +1,5 @@
 use embedded_graphics_core::pixelcolor::Rgb565;
-use embedded_hal::delay::DelayNs;
+use embedded_hal_async::delay::DelayNs;
 
 use crate::{
     dcs::SetAddressMode,

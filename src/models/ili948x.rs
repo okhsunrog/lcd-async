@@ -1,4 +1,4 @@
-use embedded_hal::delay::DelayNs;
+use embedded_hal_async::delay::DelayNs;
 
 use crate::{
     dcs::{

@@ -9,7 +9,7 @@ use crate::{
     options::ModelOptions,
 };
 use embedded_graphics_core::pixelcolor::Rgb565;
-use embedded_hal::delay::DelayNs;
+use embedded_hal_async::delay::DelayNs;
 
 /// ILI9225 display in Rgb565 color mode.
 pub struct ILI9225Rgb565;

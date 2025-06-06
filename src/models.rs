@@ -7,7 +7,7 @@ use crate::{
     ConfigurationError,
 };
 use embedded_graphics_core::prelude::RgbColor;
-use embedded_hal::delay::DelayNs;
+use embedded_hal_async::delay::DelayNs;
 
 // existing model implementations
 mod gc9107;
@@ -78,7 +78,7 @@ pub trait Model {
     ///
     /// Need to call [Self::wake] before issuing other commands
     ///
-    fn sleep<DI, DELAY>(di: &mut DI, delay: &mut DELAY) -> Result<(), DI::Error>
+    async fn sleep<DI, DELAY>(di: &mut DI, delay: &mut DELAY) -> Result<(), DI::Error>
     where
         DI: Interface,
         DELAY: DelayNs,
@@ -91,7 +91,7 @@ pub trait Model {
     ///
     /// Wakes the display after it's been set to sleep via [Self::sleep]
     ///
-    fn wake<DI, DELAY>(di: &mut DI, delay: &mut DELAY) -> Result<(), DI::Error>
+    async fn wake<DI, DELAY>(di: &mut DI, delay: &mut DELAY) -> Result<(), DI::Error>
     where
         DI: Interface,
         DELAY: DelayNs,
