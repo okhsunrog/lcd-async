@@ -45,10 +45,12 @@ impl Model for ST7735s {
         di.write_command(ExitSleepMode).await?; // turn off sleep
         delay.delay_us(120_000).await;
 
-        di.write_command(SetInvertMode::new(options.invert_colors)).await?; // set color inversion
+        di.write_command(SetInvertMode::new(options.invert_colors))
+            .await?; // set color inversion
         di.write_raw(0xB1, &[0x05, 0x3A, 0x3A]).await?; // set frame rate
         di.write_raw(0xB2, &[0x05, 0x3A, 0x3A]).await?; // set frame rate
-        di.write_raw(0xB3, &[0x05, 0x3A, 0x3A, 0x05, 0x3A, 0x3A]).await?; // set frame rate
+        di.write_raw(0xB3, &[0x05, 0x3A, 0x3A, 0x05, 0x3A, 0x3A])
+            .await?; // set frame rate
         di.write_raw(0xB4, &[0b0000_0011]).await?; // set inversion control
         di.write_raw(0xC0, &[0x62, 0x02, 0x04]).await?; // set power control 1
         di.write_raw(0xC1, &[0xC0]).await?; // set power control 2
@@ -62,14 +64,16 @@ impl Model for ST7735s {
                 0x10, 0x0E, 0x02, 0x03, 0x0E, 0x07, 0x02, 0x07, 0x0A, 0x12, 0x27, 0x37, 0x00, 0x0D,
                 0x0E, 0x10,
             ],
-        ).await?; // set GAMMA +Polarity characteristics
+        )
+        .await?; // set GAMMA +Polarity characteristics
         di.write_raw(
             0xE1,
             &[
                 0x10, 0x0E, 0x03, 0x03, 0x0F, 0x06, 0x02, 0x08, 0x0A, 0x13, 0x26, 0x36, 0x00, 0x0D,
                 0x0E, 0x10,
             ],
-        ).await?; // set GAMMA -Polarity characteristics
+        )
+        .await?; // set GAMMA -Polarity characteristics
 
         let pf = PixelFormat::with_all(BitsPerPixel::from_rgb_color::<Self::ColorFormat>());
         di.write_command(SetPixelFormat::new(pf)).await?; // set interface pixel format, 16bit pixel into frame memory

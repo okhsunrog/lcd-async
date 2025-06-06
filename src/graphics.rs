@@ -4,8 +4,8 @@ use embedded_graphics_core::{
 };
 use embedded_hal::digital::OutputPin;
 
-use crate::{dcs::BitsPerPixel, interface::Interface};
 use crate::models::Model;
+use crate::{dcs::BitsPerPixel, interface::Interface};
 use crate::{interface::InterfacePixelFormat, Display};
 
 impl<DI, MODEL, RST> OriginDimensions for Display<DI, MODEL, RST>
@@ -40,6 +40,7 @@ impl BitsPerPixel {
 }
 
 /// An iterator that alternately takes and skips elements of another iterator.
+#[allow(dead_code)]
 struct TakeSkip<I> {
     iter: I,
     take: u32,
@@ -48,6 +49,7 @@ struct TakeSkip<I> {
 }
 
 impl<I> TakeSkip<I> {
+    #[allow(dead_code)]
     pub fn new(iter: I, take: u32, skip: u32) -> Self {
         Self {
             iter,
@@ -75,11 +77,13 @@ impl<I: Iterator> Iterator for TakeSkip<I> {
 }
 
 #[cfg(not(target_pointer_width = "16"))]
+#[allow(dead_code)]
 fn take_u32<I: Iterator>(iter: I, max_count: u32) -> impl Iterator<Item = I::Item> {
     iter.take(max_count.try_into().unwrap())
 }
 
 #[cfg(target_pointer_width = "16")]
+#[allow(dead_code)]
 fn take_u32<I: Iterator>(iter: I, max_count: u32) -> impl Iterator<Item = I::Item> {
     let mut count = 0;
     iter.take_while(move |_| {
@@ -89,11 +93,13 @@ fn take_u32<I: Iterator>(iter: I, max_count: u32) -> impl Iterator<Item = I::Ite
 }
 
 #[cfg(not(target_pointer_width = "16"))]
+#[allow(dead_code)]
 fn nth_u32<I: Iterator>(mut iter: I, n: u32) -> Option<I::Item> {
     iter.nth(n.try_into().unwrap())
 }
 
 #[cfg(target_pointer_width = "16")]
+#[allow(dead_code)]
 fn nth_u32<I: Iterator>(mut iter: I, n: u32) -> Option<I::Item> {
     for _ in 0..n {
         iter.next();

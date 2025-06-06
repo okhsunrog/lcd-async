@@ -39,7 +39,9 @@ impl Model for ILI9341Rgb565 {
         }
 
         let pf = PixelFormat::with_all(BitsPerPixel::from_rgb_color::<Self::ColorFormat>());
-        ili934x::init_common(di, delay, options, pf).await.map_err(Into::into)
+        ili934x::init_common(di, delay, options, pf)
+            .await
+            .map_err(Into::into)
     }
 }
 
@@ -67,6 +69,8 @@ impl Model for ILI9341Rgb666 {
         }
 
         let pf = PixelFormat::with_all(BitsPerPixel::from_rgb_color::<Self::ColorFormat>());
-        ili934x::init_common(di, delay, options, pf).await.map_err(Into::into)
+        ili934x::init_common(di, delay, options, pf)
+            .await
+            .map_err(Into::into)
     }
 }

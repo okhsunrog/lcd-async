@@ -49,99 +49,122 @@ pub trait Model {
 
     /// Initializes the display for this model with MADCTL from [crate::Display]
     /// and returns the value of MADCTL set by init
-    async fn init<DELAY, DI>(
+    fn init<DELAY, DI>(
         &mut self,
         di: &mut DI,
         delay: &mut DELAY,
         options: &ModelOptions,
-    ) -> Result<SetAddressMode, ModelInitError<DI::Error>>
+    ) -> impl core::future::Future<Output = Result<SetAddressMode, ModelInitError<DI::Error>>>
     where
         DELAY: DelayNs,
         DI: Interface;
 
     /// Updates the address window of the display.
-    async fn update_address_window<DI>(
+    fn update_address_window<DI>(
         di: &mut DI,
         _rotation: Rotation,
         sx: u16,
         sy: u16,
         ex: u16,
         ey: u16,
-    ) -> Result<(), DI::Error>
+    ) -> impl core::future::Future<Output = Result<(), DI::Error>>
     where
         DI: Interface,
     {
-        di.write_command(dcs::SetColumnAddress::new(sx, ex)).await?;
-        di.write_command(dcs::SetPageAddress::new(sy, ey)).await
+        async move {
+            di.write_command(dcs::SetColumnAddress::new(sx, ex)).await?;
+            di.write_command(dcs::SetPageAddress::new(sy, ey)).await
+        }
     }
 
     ///
     /// Need to call [Self::wake] before issuing other commands
     ///
-    async fn sleep<DI, DELAY>(di: &mut DI, delay: &mut DELAY) -> Result<(), DI::Error>
+    fn sleep<DI, DELAY>(
+        di: &mut DI,
+        delay: &mut DELAY,
+    ) -> impl core::future::Future<Output = Result<(), DI::Error>>
     where
         DI: Interface,
         DELAY: DelayNs,
     {
-        di.write_command(dcs::EnterSleepMode).await?;
-        // All supported models requires a 120ms delay before issuing other commands
-        delay.delay_us(120_000).await;
-        Ok(())
+        async move {
+            di.write_command(dcs::EnterSleepMode).await?;
+            // All supported models requires a 120ms delay before issuing other commands
+            delay.delay_us(120_000).await;
+            Ok(())
+        }
     }
     ///
     /// Wakes the display after it's been set to sleep via [Self::sleep]
     ///
-    async fn wake<DI, DELAY>(di: &mut DI, delay: &mut DELAY) -> Result<(), DI::Error>
+    fn wake<DI, DELAY>(
+        di: &mut DI,
+        delay: &mut DELAY,
+    ) -> impl core::future::Future<Output = Result<(), DI::Error>>
     where
         DI: Interface,
         DELAY: DelayNs,
     {
-        di.write_command(dcs::ExitSleepMode).await?;
-        // ST7789 and st7735s have the highest minimal delay of 120ms
-        delay.delay_us(120_000).await;
-        Ok(())
+        async move {
+            di.write_command(dcs::ExitSleepMode).await?;
+            // ST7789 and st7735s have the highest minimal delay of 120ms
+            delay.delay_us(120_000).await;
+            Ok(())
+        }
     }
     ///
     /// We need WriteMemoryStart befor write pixel
     ///
-    async fn write_memory_start<DI>(di: &mut DI) -> Result<(), DI::Error>
+    fn write_memory_start<DI>(
+        di: &mut DI,
+    ) -> impl core::future::Future<Output = Result<(), DI::Error>>
     where
         DI: Interface,
     {
-        di.write_command(dcs::WriteMemoryStart).await
+        async move { di.write_command(dcs::WriteMemoryStart).await }
     }
     ///
     /// SoftReset
     ///
-    async fn software_reset<DI>(di: &mut DI) -> Result<(), DI::Error>
+    fn software_reset<DI>(di: &mut DI) -> impl core::future::Future<Output = Result<(), DI::Error>>
     where
         DI: Interface,
     {
-        di.write_command(dcs::SoftReset).await
+        async move { di.write_command(dcs::SoftReset).await }
     }
     ///
     /// This function will been called if user update options
     ///
-    async fn update_options<DI>(&self, di: &mut DI, options: &ModelOptions) -> Result<(), DI::Error>
+    fn update_options<DI>(
+        &self,
+        di: &mut DI,
+        options: &ModelOptions,
+    ) -> impl core::future::Future<Output = Result<(), DI::Error>>
     where
         DI: Interface,
     {
-        let madctl = SetAddressMode::from(options);
-        di.write_command(madctl).await
+        async move {
+            let madctl = SetAddressMode::from(options);
+            di.write_command(madctl).await
+        }
     }
 
     ///
     /// Configures the tearing effect output.
     ///
-    async fn set_tearing_effect<DI>(
+    fn set_tearing_effect<DI>(
         di: &mut DI,
         tearing_effect: options::TearingEffect,
         _options: &ModelOptions,
-    ) -> Result<(), DI::Error>
+    ) -> impl core::future::Future<Output = Result<(), DI::Error>>
     where
         DI: Interface,
     {
-        di.write_command(dcs::SetTearingEffect::new(tearing_effect)).await
+        async move {
+            di.write_command(dcs::SetTearingEffect::new(tearing_effect))
+                .await
+        }
     }
 
     /// Sets the vertical scroll region.
@@ -159,27 +182,29 @@ pub trait Model {
     ///
     /// After the scrolling region is defined the [`set_vertical_scroll_offset`](Self::set_vertical_scroll_offset) can be
     /// used to scroll the display.
-    async fn set_vertical_scroll_region<DI>(
+    fn set_vertical_scroll_region<DI>(
         di: &mut DI,
         top_fixed_area: u16,
         bottom_fixed_area: u16,
-    ) -> Result<(), DI::Error>
+    ) -> impl core::future::Future<Output = Result<(), DI::Error>>
     where
         DI: Interface,
     {
-        let rows = Self::FRAMEBUFFER_SIZE.1;
+        async move {
+            let rows = Self::FRAMEBUFFER_SIZE.1;
 
-        let vscrdef = if top_fixed_area + bottom_fixed_area > rows {
-            dcs::SetScrollArea::new(rows, 0, 0)
-        } else {
-            dcs::SetScrollArea::new(
-                top_fixed_area,
-                rows - top_fixed_area - bottom_fixed_area,
-                bottom_fixed_area,
-            )
-        };
+            let vscrdef = if top_fixed_area + bottom_fixed_area > rows {
+                dcs::SetScrollArea::new(rows, 0, 0)
+            } else {
+                dcs::SetScrollArea::new(
+                    top_fixed_area,
+                    rows - top_fixed_area - bottom_fixed_area,
+                    bottom_fixed_area,
+                )
+            };
 
-        di.write_command(vscrdef).await
+            di.write_command(vscrdef).await
+        }
     }
 
     /// Sets the vertical scroll offset.
@@ -189,12 +214,17 @@ pub trait Model {
     ///
     /// Use [`set_vertical_scroll_region`](Self::set_vertical_scroll_region) to setup the scroll region, before
     /// using this method.
-    async fn set_vertical_scroll_offset<DI>(di: &mut DI, offset: u16) -> Result<(), DI::Error>
+    fn set_vertical_scroll_offset<DI>(
+        di: &mut DI,
+        offset: u16,
+    ) -> impl core::future::Future<Output = Result<(), DI::Error>>
     where
         DI: Interface,
     {
-        let vscad = dcs::SetScrollStart::new(offset);
-        di.write_command(vscad).await
+        async move {
+            let vscad = dcs::SetScrollStart::new(offset);
+            di.write_command(vscad).await
+        }
     }
 }
 

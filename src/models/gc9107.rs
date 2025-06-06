@@ -80,16 +80,19 @@ impl Model for GC9107 {
             &[
                 0x01, 0x2b, 0x23, 0x3c, 0xb7, 0x12, 0x17, 0x60, 0x00, 0x06, 0x0c, 0x17, 0x12, 0x1f,
             ],
-        ).await?;
+        )
+        .await?;
 
         di.write_raw(
             0xF1,
             &[
                 0x05, 0x2e, 0x2d, 0x44, 0xd6, 0x15, 0x17, 0xa0, 0x02, 0x0d, 0x0d, 0x1a, 0x18, 0x1f,
             ],
-        ).await?;
+        )
+        .await?;
 
-        di.write_command(SetInvertMode::new(options.invert_colors)).await?;
+        di.write_command(SetInvertMode::new(options.invert_colors))
+            .await?;
 
         di.write_command(ExitSleepMode).await?; // turn off sleep
         delay.delay_ms(120).await;

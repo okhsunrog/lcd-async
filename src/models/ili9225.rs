@@ -67,7 +67,8 @@ where
     };
 
     let driver_params = [driver_high_byte, 0x1C];
-    di.write_raw(ILI9225_DRIVER_OUTPUT_CTRL, &driver_params).await?;
+    di.write_raw(ILI9225_DRIVER_OUTPUT_CTRL, &driver_params)
+        .await?;
 
     // Command 2: ENTRY_MODE (0x03)
     let color_order_byte = match options.color_order {
@@ -129,12 +130,15 @@ impl Model for ILI9225Rgb565 {
         di.write_raw(ILI9225_POWER_CTRL2, &[0x10, 0x3B]).await?; // Set APON,PON,AON,VCI1EN,VC
         delay.delay_us(30_000).await;
 
-        di.write_raw(ILI9225_LCD_AC_DRIVING_CTRL, &[0x01, 0x00]).await?; // set 1 line inversion
+        di.write_raw(ILI9225_LCD_AC_DRIVING_CTRL, &[0x01, 0x00])
+            .await?; // set 1 line inversion
 
         options_write_cmd(di, options).await?;
         di.write_raw(ILI9225_DISP_CTRL1, &[0x00, 0x00]).await?; // Display off
-        di.write_raw(ILI9225_BLANK_PERIOD_CTRL1, &[0x08, 0x08]).await?; // set the back porch and front porch
-        di.write_raw(ILI9225_FRAME_CYCLE_CTRL, &[0x11, 0x00]).await?; // set the clocks number per line
+        di.write_raw(ILI9225_BLANK_PERIOD_CTRL1, &[0x08, 0x08])
+            .await?; // set the back porch and front porch
+        di.write_raw(ILI9225_FRAME_CYCLE_CTRL, &[0x11, 0x00])
+            .await?; // set the clocks number per line
         di.write_raw(ILI9225_INTERFACE_CTRL, &[0x00, 0x00]).await?; // CPU  interface
         di.write_raw(ILI9225_OSC_CTRL, &[0x0F, 0x01]).await?; // Set Osc  /*0e01*/
         di.write_raw(ILI9225_VCI_RECYCLING, &[0x00, 0x20]).await?; // Set VCI recycling
@@ -143,15 +147,24 @@ impl Model for ILI9225Rgb565 {
 
         /* Set GRAM area */
         di.write_raw(ILI9225_GATE_SCAN_CTRL, &[0x00, 0x00]).await?;
-        di.write_raw(ILI9225_VERTICAL_SCROLL_CTRL1, &[0x00, 0xDB]).await?;
-        di.write_raw(ILI9225_VERTICAL_SCROLL_CTRL2, &[0x00, 0x00]).await?;
-        di.write_raw(ILI9225_VERTICAL_SCROLL_CTRL3, &[0x00, 0x00]).await?;
-        di.write_raw(ILI9225_PARTIAL_DRIVING_POS1, &[0x00, 0xDB]).await?;
-        di.write_raw(ILI9225_PARTIAL_DRIVING_POS2, &[0x00, 0x00]).await?;
-        di.write_raw(ILI9225_HORIZONTAL_WINDOW_ADDR1, &[0x00, 0xAF]).await?;
-        di.write_raw(ILI9225_HORIZONTAL_WINDOW_ADDR2, &[0x00, 0x00]).await?;
-        di.write_raw(ILI9225_VERTICAL_WINDOW_ADDR1, &[0x00, 0xDB]).await?;
-        di.write_raw(ILI9225_VERTICAL_WINDOW_ADDR2, &[0x00, 0x00]).await?;
+        di.write_raw(ILI9225_VERTICAL_SCROLL_CTRL1, &[0x00, 0xDB])
+            .await?;
+        di.write_raw(ILI9225_VERTICAL_SCROLL_CTRL2, &[0x00, 0x00])
+            .await?;
+        di.write_raw(ILI9225_VERTICAL_SCROLL_CTRL3, &[0x00, 0x00])
+            .await?;
+        di.write_raw(ILI9225_PARTIAL_DRIVING_POS1, &[0x00, 0xDB])
+            .await?;
+        di.write_raw(ILI9225_PARTIAL_DRIVING_POS2, &[0x00, 0x00])
+            .await?;
+        di.write_raw(ILI9225_HORIZONTAL_WINDOW_ADDR1, &[0x00, 0xAF])
+            .await?;
+        di.write_raw(ILI9225_HORIZONTAL_WINDOW_ADDR2, &[0x00, 0x00])
+            .await?;
+        di.write_raw(ILI9225_VERTICAL_WINDOW_ADDR1, &[0x00, 0xDB])
+            .await?;
+        di.write_raw(ILI9225_VERTICAL_WINDOW_ADDR2, &[0x00, 0x00])
+            .await?;
 
         /* Set GAMMA curve */
         di.write_raw(ILI9225_GAMMA_CTRL1, &[0x00, 0x00]).await?;

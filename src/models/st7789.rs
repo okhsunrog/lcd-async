@@ -48,7 +48,8 @@ impl Model for ST7789 {
         // set hw scroll area based on framebuffer size
         di.write_command(madctl).await?;
 
-        di.write_command(SetInvertMode::new(options.invert_colors)).await?;
+        di.write_command(SetInvertMode::new(options.invert_colors))
+            .await?;
 
         let pf = PixelFormat::with_all(BitsPerPixel::from_rgb_color::<Self::ColorFormat>());
         di.write_command(SetPixelFormat::new(pf)).await?;

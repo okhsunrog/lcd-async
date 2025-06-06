@@ -1,7 +1,7 @@
 //! [super::Display] builder module
 
-use embedded_hal_async::delay::DelayNs;
 use embedded_hal::digital::{self, OutputPin};
+use embedded_hal_async::delay::DelayNs;
 
 use crate::{
     dcs::InterfaceExt,
@@ -180,11 +180,15 @@ where
             }
             None => self
                 .di
-                .write_command(crate::dcs::SoftReset).await
+                .write_command(crate::dcs::SoftReset)
+                .await
                 .map_err(InitError::Interface)?,
         }
 
-        let madctl = self.model.init(&mut self.di, delay_source, &self.options).await?;
+        let madctl = self
+            .model
+            .init(&mut self.di, delay_source, &self.options)
+            .await?;
 
         let display = Display {
             di: self.di,

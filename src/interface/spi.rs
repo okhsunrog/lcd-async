@@ -81,7 +81,10 @@ where
                     break;
                 };
             }
-            self.spi.write(&self.buffer[..i]).await.map_err(SpiError::Spi)?;
+            self.spi
+                .write(&self.buffer[..i])
+                .await
+                .map_err(SpiError::Spi)?;
         }
         Ok(())
     }
@@ -101,13 +104,15 @@ where
         let mut count = count;
         while count >= fill_count {
             self.spi
-                .write(&self.buffer[..filled_len]).await
+                .write(&self.buffer[..filled_len])
+                .await
                 .map_err(SpiError::Spi)?;
             count -= fill_count;
         }
         if count != 0 {
             self.spi
-                .write(&self.buffer[..(count as usize * pixel.len())]).await
+                .write(&self.buffer[..(count as usize * pixel.len())])
+                .await
                 .map_err(SpiError::Spi)?;
         }
         Ok(())

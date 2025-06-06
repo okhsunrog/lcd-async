@@ -43,10 +43,16 @@ pub trait DcsCommand {
 /// the [`write_raw`](Self::write_raw) method.
 pub trait InterfaceExt: Interface {
     /// Sends a DCS command to the display interface.
-    async fn write_command(&mut self, command: impl DcsCommand) -> Result<(), Self::Error> {
-        let mut param_bytes: [u8; 16] = [0; 16];
-        let n = command.fill_params_buf(&mut param_bytes);
-        self.write_raw(command.instruction(), &param_bytes[..n]).await
+    fn write_command(
+        &mut self,
+        command: impl DcsCommand,
+    ) -> impl core::future::Future<Output = Result<(), Self::Error>> {
+        async move {
+            let mut param_bytes: [u8; 16] = [0; 16];
+            let n = command.fill_params_buf(&mut param_bytes);
+            self.write_raw(command.instruction(), &param_bytes[..n])
+                .await
+        }
     }
 
     /// Sends a raw command with the given `instruction` to the display interface.
@@ -58,8 +64,12 @@ pub trait InterfaceExt: Interface {
     /// This method is intended to be used for sending commands which are not part of the MIPI DCS
     /// user command set. Use [`write_command`](Self::write_command) for commands in the user
     /// command set.
-    async fn write_raw(&mut self, instruction: u8, param_bytes: &[u8]) -> Result<(), Self::Error> {
-        self.send_command(instruction, param_bytes).await
+    fn write_raw(
+        &mut self,
+        instruction: u8,
+        param_bytes: &[u8],
+    ) -> impl core::future::Future<Output = Result<(), Self::Error>> {
+        async move { self.send_command(instruction, param_bytes).await }
     }
 }
 

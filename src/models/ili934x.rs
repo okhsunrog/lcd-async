@@ -28,7 +28,8 @@ where
 
     di.write_command(madctl).await?;
     di.write_raw(0xB4, &[0x0]).await?;
-    di.write_command(SetInvertMode::new(options.invert_colors)).await?;
+    di.write_command(SetInvertMode::new(options.invert_colors))
+        .await?;
     di.write_command(SetPixelFormat::new(pixel_format)).await?;
 
     di.write_command(EnterNormalMode).await?;

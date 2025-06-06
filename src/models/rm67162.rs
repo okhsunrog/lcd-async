@@ -74,7 +74,8 @@ impl Model for RM67162 {
 
         di.write_command(madctl).await?;
 
-        di.write_command(SetInvertMode::new(options.invert_colors)).await?;
+        di.write_command(SetInvertMode::new(options.invert_colors))
+            .await?;
 
         di.write_command(ExitSleepMode).await?;
         delay.delay_us(120_000).await;

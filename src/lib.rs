@@ -2,8 +2,8 @@ use dcs::SetAddressMode;
 
 pub mod interface;
 
-use embedded_hal_async::delay::DelayNs;
 use embedded_hal::digital::OutputPin;
+use embedded_hal_async::delay::DelayNs;
 
 pub mod options;
 use interface::InterfacePixelFormat;
@@ -43,6 +43,7 @@ where
     // Model Options, includes current orientation
     options: options::ModelOptions,
     // Current MADCTL value copy for runtime updates
+    #[allow(dead_code)]
     madctl: SetAddressMode,
     // State monitor for sleeping TODO: refactor to a Model-connected state machine
     sleeping: bool,
@@ -73,7 +74,10 @@ where
     /// # let mut display = mipidsi::_mock::new_mock_display();
     /// display.set_orientation(Orientation::default().rotate(Rotation::Deg180)).unwrap();
     /// ```
-    pub async fn set_orientation(&mut self, orientation: options::Orientation) -> Result<(), DI::Error> {
+    pub async fn set_orientation(
+        &mut self,
+        orientation: options::Orientation,
+    ) -> Result<(), DI::Error> {
         self.options.orientation = orientation;
         self.model.update_options(&mut self.di, &self.options).await
     }
@@ -95,7 +99,12 @@ where
     /// # let mut display = mipidsi::_mock::new_mock_display();
     /// display.set_pixel(100, 200, Rgb565::new(251, 188, 20)).unwrap();
     /// ```
-    pub async fn set_pixel(&mut self, x: u16, y: u16, color: M::ColorFormat) -> Result<(), DI::Error> {
+    pub async fn set_pixel(
+        &mut self,
+        x: u16,
+        y: u16,
+        color: M::ColorFormat,
+    ) -> Result<(), DI::Error> {
         self.set_pixels(x, y, x, y, core::iter::once(color)).await
     }
 
@@ -187,7 +196,13 @@ where
     }
 
     // Sets the address window for the display.
-    async fn set_address_window(&mut self, sx: u16, sy: u16, ex: u16, ey: u16) -> Result<(), DI::Error> {
+    async fn set_address_window(
+        &mut self,
+        sx: u16,
+        sy: u16,
+        ex: u16,
+        ey: u16,
+    ) -> Result<(), DI::Error> {
         // add clipping offsets if present
         let mut offset = self.options.display_offset;
         let mapping = MemoryMapping::from(self.options.orientation);
@@ -210,7 +225,8 @@ where
             sy,
             ex,
             ey,
-        ).await
+        )
+        .await
     }
 
     ///
@@ -261,4 +277,3 @@ where
         &mut self.di
     }
 }
-
