@@ -32,7 +32,10 @@ pub trait Interface {
     /// `WriteMemoryStart` (or equivalent) must be sent before calling this function.
     /// The data is assumed to be in the correct format for the display and interface.
     /// If Self::Word is u8, data is &[u8]. If Self::Word is u16, data is &[u16].
-    async fn send_data_slice(&mut self, data: &[Self::Word]) -> Result<(), Self::Error>;
+    fn send_data_slice(
+        &mut self,
+        data: &[Self::Word],
+    ) -> impl core::future::Future<Output = Result<(), Self::Error>>;
 }
 
 impl<T: Interface + ?Sized> Interface for &mut T {

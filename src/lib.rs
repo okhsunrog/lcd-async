@@ -82,6 +82,27 @@ where
         self.model.update_options(&mut self.di, &self.options).await
     }
 
+    /// Sends a raw pixel data slice to the specified rectangular region of the display.
+    pub async fn show_raw_data<DW>(
+        &mut self,
+        x: u16,
+        y: u16,
+        width: u16,
+        height: u16,
+        pixel_data: &[DW],
+    ) -> Result<(), DI::Error>
+    where
+        DI: interface::Interface<Word = DW>,
+        DW: Copy,
+    {
+        let ex = x + width - 1;
+        let ey = y + height - 1;
+
+        self.set_address_window(x, y, ex, ey).await?;
+        M::write_memory_start(&mut self.di).await?;
+        self.di.send_data_slice(pixel_data).await
+    }
+
     /// Sets the vertical scroll region.
     ///
     /// The `top_fixed_area` and `bottom_fixed_area` arguments can be used to
