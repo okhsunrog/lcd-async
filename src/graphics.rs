@@ -1,26 +1,6 @@
-use embedded_graphics_core::{
-    geometry::{OriginDimensions, Size},
-    pixelcolor::RgbColor,
-};
-use embedded_hal::digital::OutputPin;
+use embedded_graphics_core::pixelcolor::RgbColor;
 
-use crate::models::Model;
-use crate::{dcs::BitsPerPixel, interface::Interface};
-use crate::{interface::InterfacePixelFormat, Display};
-
-impl<DI, MODEL, RST> OriginDimensions for Display<DI, MODEL, RST>
-where
-    DI: Interface,
-    MODEL: Model,
-    MODEL::ColorFormat: InterfacePixelFormat<DI::Word>,
-    RST: OutputPin,
-{
-    fn size(&self) -> Size {
-        let ds = self.options.display_size();
-        let (width, height) = (u32::from(ds.0), u32::from(ds.1));
-        Size::new(width, height)
-    }
-}
+use crate::dcs::BitsPerPixel;
 
 impl BitsPerPixel {
     /// Returns the bits per pixel for a embedded-graphics [`RgbColor`].

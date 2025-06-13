@@ -1,3 +1,7 @@
+#![no_std]
+// associated re-typing not supported in rust yet
+#![allow(clippy::type_complexity)]
+
 use dcs::SetAddressMode;
 
 pub mod interface;
@@ -6,7 +10,6 @@ use embedded_hal::digital::OutputPin;
 use embedded_hal_async::delay::DelayNs;
 
 pub mod options;
-use interface::InterfacePixelFormat;
 use options::MemoryMapping;
 
 mod builder;
@@ -14,16 +17,14 @@ pub use builder::*;
 
 pub mod dcs;
 
-pub mod raw_framebuf;
 pub mod models;
+pub mod raw_framebuf;
 use models::Model;
 
 mod graphics;
 
 mod test_image;
 pub use test_image::TestImage;
-
-pub mod _troubleshooting;
 
 ///
 /// Display driver to connect to TFT displays.
@@ -32,7 +33,6 @@ pub struct Display<DI, MODEL, RST>
 where
     DI: interface::Interface,
     MODEL: Model,
-    MODEL::ColorFormat: InterfacePixelFormat<DI::Word>,
     RST: OutputPin,
 {
     // DCS provider
@@ -54,7 +54,6 @@ impl<DI, M, RST> Display<DI, M, RST>
 where
     DI: interface::Interface,
     M: Model,
-    M::ColorFormat: InterfacePixelFormat<DI::Word>,
     RST: OutputPin,
 {
     ///
@@ -81,77 +80,6 @@ where
     ) -> Result<(), DI::Error> {
         self.options.orientation = orientation;
         self.model.update_options(&mut self.di, &self.options).await
-    }
-
-    ///
-    /// Sets a pixel color at the given coords.
-    ///
-    /// # Arguments
-    ///
-    /// * `x` - x coordinate
-    /// * `y` - y coordinate
-    /// * `color` - the color value in pixel format of the display [Model]
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use embedded_graphics::pixelcolor::Rgb565;
-    ///
-    /// # let mut display = mipidsi::_mock::new_mock_display();
-    /// display.set_pixel(100, 200, Rgb565::new(251, 188, 20)).unwrap();
-    /// ```
-    pub async fn set_pixel(
-        &mut self,
-        x: u16,
-        y: u16,
-        color: M::ColorFormat,
-    ) -> Result<(), DI::Error> {
-        self.set_pixels(x, y, x, y, core::iter::once(color)).await
-    }
-
-    ///
-    /// Sets pixel colors in a rectangular region.
-    ///
-    /// The color values from the `colors` iterator will be drawn to the given region starting
-    /// at the top left corner and continuing, row first, to the bottom right corner. No bounds
-    /// checking is performed on the `colors` iterator and drawing will wrap around if the
-    /// iterator returns more color values than the number of pixels in the given region.
-    ///
-    /// This is a low level function, which isn't intended to be used in regular user code.
-    /// Consider using the [`fill_contiguous`](https://docs.rs/embedded-graphics/latest/embedded_graphics/draw_target/trait.DrawTarget.html#method.fill_contiguous)
-    /// function from the `embedded-graphics` crate as an alternative instead.
-    ///
-    /// # Arguments
-    ///
-    /// * `sx` - x coordinate start
-    /// * `sy` - y coordinate start
-    /// * `ex` - x coordinate end
-    /// * `ey` - y coordinate end
-    /// * `colors` - anything that can provide `IntoIterator<Item = u16>` to iterate over pixel data
-    /// <div class="warning">
-    ///
-    /// The end values of the X and Y coordinate ranges are inclusive, and no
-    /// bounds checking is performed on these values. Using out of range values
-    /// (e.g., passing `320` instead of `319` for a 320 pixel wide display) will
-    /// result in undefined behavior.
-    ///
-    /// </div>
-    pub async fn set_pixels<T>(
-        &mut self,
-        sx: u16,
-        sy: u16,
-        ex: u16,
-        ey: u16,
-        colors: T,
-    ) -> Result<(), DI::Error>
-    where
-        T: IntoIterator<Item = M::ColorFormat>,
-    {
-        self.set_address_window(sx, sy, ex, ey).await?;
-
-        M::write_memory_start(&mut self.di).await?;
-
-        M::ColorFormat::send_pixels(&mut self.di, colors).await
     }
 
     /// Sets the vertical scroll region.
@@ -197,6 +125,7 @@ where
     }
 
     // Sets the address window for the display.
+    #[allow(unused)]
     async fn set_address_window(
         &mut self,
         sx: u16,

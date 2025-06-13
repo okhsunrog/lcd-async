@@ -53,6 +53,7 @@ impl ModelOptions {
     /// Returns the display size based on current orientation and display options.
     ///
     /// Used by models.
+    #[allow(unused)]
     pub(crate) fn display_size(&self) -> (u16, u16) {
         if self.orientation.rotation.is_horizontal() {
             self.display_size

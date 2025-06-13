@@ -5,7 +5,7 @@ use embedded_hal_async::delay::DelayNs;
 
 use crate::{
     dcs::InterfaceExt,
-    interface::{Interface, InterfacePixelFormat},
+    interface::Interface,
     models::{Model, ModelInitError},
     options::{ColorInversion, ColorOrder, ModelOptions, Orientation, RefreshOrder},
     Display,
@@ -33,7 +33,6 @@ pub struct Builder<DI, MODEL, RST>
 where
     DI: Interface,
     MODEL: Model,
-    MODEL::ColorFormat: InterfacePixelFormat<DI::Word>,
 {
     di: DI,
     model: MODEL,
@@ -45,7 +44,6 @@ impl<DI, MODEL> Builder<DI, MODEL, NoResetPin>
 where
     DI: Interface,
     MODEL: Model,
-    MODEL::ColorFormat: InterfacePixelFormat<DI::Word>,
 {
     ///
     /// Constructs a new builder for given [Model].
@@ -65,7 +63,6 @@ impl<DI, MODEL, RST> Builder<DI, MODEL, RST>
 where
     DI: Interface,
     MODEL: Model,
-    MODEL::ColorFormat: InterfacePixelFormat<DI::Word>,
     RST: OutputPin,
 {
     ///

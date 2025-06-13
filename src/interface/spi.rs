@@ -3,37 +3,24 @@ use embedded_hal_async::spi::SpiDevice;
 
 use super::{Interface, InterfaceKind};
 
-/// Spi interface error
 #[derive(Clone, Copy, Debug)]
 pub enum SpiError<SPI, DC> {
-    /// SPI bus error
     Spi(SPI),
-    /// Data/command pin error
     Dc(DC),
 }
 
-/// Spi interface, including a buffer
-///
-/// The buffer is used to gather batches of pixel data to be sent over SPI.
-/// Larger buffers will genererally be faster (with diminishing returns), at the expense of using more RAM.
-/// The buffer should be at least big enough to hold a few pixels of data.
-///
-/// You may want to use [static_cell](https://crates.io/crates/static_cell)
-/// to obtain a `&'static mut [u8; N]` buffer.
-pub struct SpiInterface<'a, SPI, DC> {
+pub struct SpiInterface<SPI, DC> {
     spi: SPI,
     dc: DC,
-    buffer: &'a mut [u8],
 }
 
-impl<'a, SPI, DC> SpiInterface<'a, SPI, DC>
+impl<SPI, DC> SpiInterface<SPI, DC>
 where
     SPI: SpiDevice,
     DC: OutputPin,
 {
-    /// Create new interface
-    pub fn new(spi: SPI, dc: DC, buffer: &'a mut [u8]) -> Self {
-        Self { spi, dc, buffer }
+    pub fn new(spi: SPI, dc: DC) -> Self {
+        Self { spi, dc }
     }
 
     /// Release the DC pin and SPI peripheral back, deconstructing the interface
@@ -42,12 +29,12 @@ where
     }
 }
 
-impl<SPI, DC> Interface for SpiInterface<'_, SPI, DC>
+impl<SPI, DC> Interface for SpiInterface<SPI, DC>
 where
-    SPI: SpiDevice,
-    DC: OutputPin,
+    SPI: SpiDevice, // Assuming async
+    DC: OutputPin,  // Ensure OutputPin methods are compatible with your async context
 {
-    type Word = u8;
+    type Word = u8; // For SPI, Word is u8. send_data_slice will take &[u8]
     type Error = SpiError<SPI::Error, DC::Error>;
 
     const KIND: InterfaceKind = InterfaceKind::Serial4Line;
@@ -60,61 +47,11 @@ where
         Ok(())
     }
 
-    async fn send_pixels<const N: usize>(
-        &mut self,
-        pixels: impl IntoIterator<Item = [Self::Word; N]>,
-    ) -> Result<(), Self::Error> {
-        let mut arrays = pixels.into_iter();
-
-        assert!(self.buffer.len() >= N);
-
-        let mut done = false;
-        while !done {
-            let mut i = 0;
-            for chunk in self.buffer.chunks_exact_mut(N) {
-                if let Some(array) = arrays.next() {
-                    let chunk: &mut [u8; N] = chunk.try_into().unwrap();
-                    *chunk = array;
-                    i += N;
-                } else {
-                    done = true;
-                    break;
-                };
-            }
-            self.spi
-                .write(&self.buffer[..i])
-                .await
-                .map_err(SpiError::Spi)?;
-        }
-        Ok(())
-    }
-
-    async fn send_repeated_pixel<const N: usize>(
-        &mut self,
-        pixel: [Self::Word; N],
-        count: u32,
-    ) -> Result<(), Self::Error> {
-        let fill_count = core::cmp::min(count, (self.buffer.len() / N) as u32);
-        let filled_len = fill_count as usize * N;
-        for chunk in self.buffer[..(filled_len)].chunks_exact_mut(N) {
-            let chunk: &mut [u8; N] = chunk.try_into().unwrap();
-            *chunk = pixel;
-        }
-
-        let mut count = count;
-        while count >= fill_count {
-            self.spi
-                .write(&self.buffer[..filled_len])
-                .await
-                .map_err(SpiError::Spi)?;
-            count -= fill_count;
-        }
-        if count != 0 {
-            self.spi
-                .write(&self.buffer[..(count as usize * pixel.len())])
-                .await
-                .map_err(SpiError::Spi)?;
-        }
+    async fn send_data_slice(&mut self, data: &[Self::Word]) -> Result<(), Self::Error> {
+        // data is &[u8] because Self::Word = u8
+        // Directly send the user's framebuffer slice.
+        // The underlying SPI driver might do its own buffering/chunking if necessary.
+        self.spi.write(data).await.map_err(SpiError::Spi)?;
         Ok(())
     }
 }

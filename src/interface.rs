@@ -1,7 +1,6 @@
 //! Interface traits and implementations
 
 mod spi;
-use embedded_graphics_core::pixelcolor::{Rgb565, Rgb666, RgbColor};
 pub use spi::*;
 
 mod parallel;
@@ -29,141 +28,24 @@ pub trait Interface {
         args: &[u8],
     ) -> impl core::future::Future<Output = Result<(), Self::Error>>;
 
-    /// Send a sequence of pixels
-    ///
-    /// `WriteMemoryStart` must be sent before calling this function
-    fn send_pixels<const N: usize>(
-        &mut self,
-        pixels: impl IntoIterator<Item = [Self::Word; N]>,
-    ) -> impl core::future::Future<Output = Result<(), Self::Error>>;
-
-    /// Send the same pixel value multiple times
-    ///
-    /// `WriteMemoryStart` must be sent before calling this function
-    fn send_repeated_pixel<const N: usize>(
-        &mut self,
-        pixel: [Self::Word; N],
-        count: u32,
-    ) -> impl core::future::Future<Output = Result<(), Self::Error>>;
+    /// Send a raw slice of data, typically pre-formatted pixel data.
+    /// `WriteMemoryStart` (or equivalent) must be sent before calling this function.
+    /// The data is assumed to be in the correct format for the display and interface.
+    /// If Self::Word is u8, data is &[u8]. If Self::Word is u16, data is &[u16].
+    async fn send_data_slice(&mut self, data: &[Self::Word]) -> Result<(), Self::Error>;
 }
 
-impl<T: Interface> Interface for &mut T {
+impl<T: Interface + ?Sized> Interface for &mut T {
     type Word = T::Word;
     type Error = T::Error;
-
     const KIND: InterfaceKind = T::KIND;
 
-    fn send_command(
-        &mut self,
-        command: u8,
-        args: &[u8],
-    ) -> impl core::future::Future<Output = Result<(), Self::Error>> {
-        T::send_command(self, command, args)
+    async fn send_command(&mut self, command: u8, args: &[u8]) -> Result<(), Self::Error> {
+        T::send_command(self, command, args).await
     }
 
-    fn send_pixels<const N: usize>(
-        &mut self,
-        pixels: impl IntoIterator<Item = [Self::Word; N]>,
-    ) -> impl core::future::Future<Output = Result<(), Self::Error>> {
-        T::send_pixels(self, pixels)
-    }
-
-    fn send_repeated_pixel<const N: usize>(
-        &mut self,
-        pixel: [Self::Word; N],
-        count: u32,
-    ) -> impl core::future::Future<Output = Result<(), Self::Error>> {
-        T::send_repeated_pixel(self, pixel, count)
-    }
-}
-
-fn rgb565_to_bytes(pixel: Rgb565) -> [u8; 2] {
-    embedded_graphics_core::pixelcolor::raw::ToBytes::to_be_bytes(pixel)
-}
-fn rgb565_to_u16(pixel: Rgb565) -> [u16; 1] {
-    [u16::from_ne_bytes(
-        embedded_graphics_core::pixelcolor::raw::ToBytes::to_ne_bytes(pixel),
-    )]
-}
-fn rgb666_to_bytes(pixel: Rgb666) -> [u8; 3] {
-    [pixel.r(), pixel.g(), pixel.b()].map(|x| x << 2)
-}
-
-/// This is an implementation detail, it should not be implemented or used outside this crate
-pub trait InterfacePixelFormat<Word> {
-    // this should just be
-    // const N: usize;
-    // fn convert(self) -> [Word; Self::N];
-    // but that doesn't work yet
-
-    #[doc(hidden)]
-    fn send_pixels<DI: Interface<Word = Word>>(
-        di: &mut DI,
-        pixels: impl IntoIterator<Item = Self>,
-    ) -> impl core::future::Future<Output = Result<(), DI::Error>>;
-
-    #[doc(hidden)]
-    fn send_repeated_pixel<DI: Interface<Word = Word>>(
-        di: &mut DI,
-        pixel: Self,
-        count: u32,
-    ) -> impl core::future::Future<Output = Result<(), DI::Error>>;
-}
-
-impl InterfacePixelFormat<u8> for Rgb565 {
-    fn send_pixels<DI: Interface<Word = u8>>(
-        di: &mut DI,
-        pixels: impl IntoIterator<Item = Self>,
-    ) -> impl core::future::Future<Output = Result<(), DI::Error>> {
-        async move {
-            di.send_pixels(pixels.into_iter().map(rgb565_to_bytes))
-                .await
-        }
-    }
-
-    fn send_repeated_pixel<DI: Interface<Word = u8>>(
-        di: &mut DI,
-        pixel: Self,
-        count: u32,
-    ) -> impl core::future::Future<Output = Result<(), DI::Error>> {
-        async move { di.send_repeated_pixel(rgb565_to_bytes(pixel), count).await }
-    }
-}
-
-impl InterfacePixelFormat<u8> for Rgb666 {
-    fn send_pixels<DI: Interface<Word = u8>>(
-        di: &mut DI,
-        pixels: impl IntoIterator<Item = Self>,
-    ) -> impl core::future::Future<Output = Result<(), DI::Error>> {
-        async move {
-            di.send_pixels(pixels.into_iter().map(rgb666_to_bytes))
-                .await
-        }
-    }
-
-    fn send_repeated_pixel<DI: Interface<Word = u8>>(
-        di: &mut DI,
-        pixel: Self,
-        count: u32,
-    ) -> impl core::future::Future<Output = Result<(), DI::Error>> {
-        async move { di.send_repeated_pixel(rgb666_to_bytes(pixel), count).await }
-    }
-}
-
-impl InterfacePixelFormat<u16> for Rgb565 {
-    fn send_pixels<DI: Interface<Word = u16>>(
-        di: &mut DI,
-        pixels: impl IntoIterator<Item = Self>,
-    ) -> impl core::future::Future<Output = Result<(), DI::Error>> {
-        async move { di.send_pixels(pixels.into_iter().map(rgb565_to_u16)).await }
-    }
-
-    fn send_repeated_pixel<DI: Interface<Word = u16>>(
-        di: &mut DI,
-        pixel: Self,
-        count: u32,
-    ) -> impl core::future::Future<Output = Result<(), DI::Error>> {
-        async move { di.send_repeated_pixel(rgb565_to_u16(pixel), count).await }
+    async fn send_data_slice(&mut self, data: &[Self::Word]) -> Result<(), Self::Error> {
+        T::send_data_slice(self, data).await
     }
 }
 
