@@ -148,7 +148,7 @@ where
     ) -> Result<Display<DI, MODEL, RST>, InitError<DI::Error, RST::Error>> {
         let to_u32 = |(a, b)| (u32::from(a), u32::from(b));
         let (width, height) = to_u32(self.options.display_size);
-        let (offset_x, offset_y) = to_u32(self.options.display_offset);
+        let (_offset_x, _offset_y) = to_u32(self.options.display_offset);
         let (max_width, max_height) = to_u32(MODEL::FRAMEBUFFER_SIZE);
 
         if width == 0 || height == 0 || width > max_width || height > max_height {
@@ -157,17 +157,17 @@ where
             ));
         }
 
-        if width + offset_x > max_width {
-            return Err(InitError::InvalidConfiguration(
-                ConfigurationError::InvalidDisplayOffset,
-            ));
-        }
+        // if width + offset_x > max_width {
+        //     return Err(InitError::InvalidConfiguration(
+        //         ConfigurationError::InvalidDisplayOffset,
+        //     ));
+        // }
 
-        if height + offset_y > max_height {
-            return Err(InitError::InvalidConfiguration(
-                ConfigurationError::InvalidDisplayOffset,
-            ));
-        }
+        // if height + offset_y > max_height {
+        //     return Err(InitError::InvalidConfiguration(
+        //         ConfigurationError::InvalidDisplayOffset,
+        //     ));
+        // }
 
         match self.rst {
             Some(ref mut rst) => {

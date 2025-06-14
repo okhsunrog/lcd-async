@@ -146,7 +146,6 @@ where
     }
 
     // Sets the address window for the display.
-    #[allow(unused)]
     async fn set_address_window(
         &mut self,
         sx: u16,
