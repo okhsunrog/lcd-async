@@ -1,18 +1,17 @@
 [package]
 name = "lcd-async"
-description = "async fork of mipidsi crate"
-version = "0.9.0"
+description = "Async fork of mipidsi crate"
+version = "0.1.0"
 authors = ["Danila Gornushko <me@okhsunrog.dev>"]
-edition = "2021" # migrate to 2024
+edition = "2021"
 license = "MIT"
 repository = "https://github.com/okhsunrog/lcd-async"
 keywords = ["embedded-hal-driver", "display", "async", "no_std"]
 readme = "README.md"
-documentation = "https://docs.rs/lcd-async"
 rust-version = "1.75"
 
 [dependencies]
-embedded-graphics-core = "0.4.0" # remove later
+embedded-graphics-core = "0.4.0"
 embedded-graphics = "0.8"
 embedded-hal = "1.0"
 embedded-hal-async = "1.0"
