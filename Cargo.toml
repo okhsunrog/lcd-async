@@ -1,7 +1,7 @@
 [package]
 name = "lcd-async"
 description = "Async fork of mipidsi crate"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Danila Gornushko <me@okhsunrog.dev>"]
 edition = "2021"
 license = "MIT"
