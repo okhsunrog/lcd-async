@@ -8,6 +8,7 @@ license = "MIT"
 repository = "https://github.com/okhsunrog/lcd-async"
 keywords = ["embedded-hal-driver", "display", "async", "no_std"]
 readme = "README.md"
+documentation = "https://docs.rs/lcd-async"
 rust-version = "1.75"
 
 [dependencies]

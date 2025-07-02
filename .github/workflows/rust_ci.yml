@@ -1,0 +1,77 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [staging, trying, master]
+  pull_request:
+
+jobs:
+  ci-linux:
+    name: Linux (lib)
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [stable, nightly, 1.75.0]
+        buildflags: [--no-default-features, ""]
+        include:
+          - rust: nightly
+            experimental: true
+    continue-on-error: ${{ matrix.experimental || false }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt, clippy
+      - name: Build
+        run: cargo build ${{ matrix.buildflags }}
+      - name: Test
+        run: cargo test ${{ matrix.buildflags }}
+      - name: Clippy
+        run: cargo clippy --all-features -- -D warnings
+      - name: Rustfmt
+        run: cargo fmt --all -- --check
+
+  build-other:
+    name: Build/Test (macOS/Windows)
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+        buildflags: [--no-default-features, ""]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build
+        run: cargo build ${{ matrix.buildflags }}
+      - name: Test
+        run: cargo test ${{ matrix.buildflags }}
+
+  build-examples:
+    name: Build & Fmt Examples
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        example:
+          - spi-st7789-esp32-c3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Build example
+        run: cargo build
+        working-directory: examples/${{ matrix.example }}
+      - name: Rustfmt example
+        run: cargo fmt --all -- --check
+        working-directory: examples/${{ matrix.example }}
+
+  build-docs:
+    name: Docs
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build docs
+        run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features
