@@ -294,17 +294,13 @@ impl Model for ILI9225Rgb565 {
     }
 }
 
-#[path = "../dcs/macros.rs"]
-#[macro_use]
-mod dcs_macros;
-
-dcs_basic_command!(
+crate::dcs::macros::dcs_basic_command!(
     /// Initiate Framebuffer Memory Write
     WriteMemoryStartILI9225,
     0x22
 );
 
-dcs_basic_command!(
+crate::dcs::macros::dcs_basic_command!(
     /// Software Reset
     SoftResetILI9225,
     0x28

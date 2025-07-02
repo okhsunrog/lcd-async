@@ -121,7 +121,7 @@ pub trait RawBufferBackendMut {
     fn u8_len(&self) -> usize;
 }
 
-impl<'a> RawBufferBackendMut for &'a mut [u8] {
+impl RawBufferBackendMut for &mut [u8] {
     fn as_mut_u8_slice(&mut self) -> &mut [u8] {
         self
     }

@@ -18,3 +18,7 @@ macro_rules! dcs_basic_command {
         }
     };
 }
+
+// Re-export the macro so that it can be accessed from outside this module via
+// `crate::dcs::macros::dcs_basic_command!` without needing a duplicate `mod`.
+pub(crate) use dcs_basic_command;
