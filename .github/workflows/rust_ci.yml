@@ -43,6 +43,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
       - name: Build
         run: cargo build ${{ matrix.buildflags }}
       - name: Test
@@ -73,5 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
       - name: Build docs
         run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --all-features

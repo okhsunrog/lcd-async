@@ -85,6 +85,8 @@ mod graphics;
 mod test_image;
 pub use test_image::TestImage;
 
+pub mod _troubleshooting;
+
 ///
 /// Display driver to connect to TFT displays.
 ///
