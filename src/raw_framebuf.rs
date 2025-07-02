@@ -24,49 +24,32 @@
 //!
 //! # Example
 //!
-//! ```no_run
-//! // This example requires a global allocator for Vec.
-//! extern crate alloc;
-//! use alloc::vec;
-//! use alloc::vec::Vec;
-//!
+//! ```
 //! use embedded_graphics::pixelcolor::Rgb565;
 //! use embedded_graphics::prelude::*;
 //! use embedded_graphics::primitives::{Circle, PrimitiveStyle};
-//! # use lcd_async::framebuffer::{RawFrameBuf, RawBufferBackendMut, IntoRawBytes};
-//! #
-//! # // Mock display driver to demonstrate the API.
-//! # struct MockAsyncDisplayDriver;
-//! # impl MockAsyncDisplayDriver {
-//! #     async fn show_raw_data(&mut self, data: &[u8]) -> Result<(), ()> {
-//! #         // In a real driver, this would send `data` to the display via SPI/Parallel.
-//! #         Ok(())
-//! #     }
-//! # }
+//! use lcd_async::raw_framebuf::{RawFrameBuf, IntoRawBytes};
 //!
-//! async fn draw_scene(display: &mut MockAsyncDisplayDriver) {
-//!     const WIDTH: usize = 128;
-//!     const HEIGHT: usize = 128;
+//! const WIDTH: usize = 64;
+//! const HEIGHT: usize = 64;
+//! const FRAME_SIZE: usize = WIDTH * HEIGHT * 2; // Rgb565 = 2 bytes per pixel
 //!
-//!     // 1. Allocate a buffer for one frame.
-//!     let frame_size = WIDTH * HEIGHT * Rgb565::BYTES_PER_PIXEL;
-//!     let mut frame_buffer: Vec<u8> = vec![0; frame_size];
+//! // Create a static buffer
+//! let mut frame_buffer = [0u8; FRAME_SIZE];
 //!
-//!     // 2. Create the framebuffer in a new scope to manage the borrow.
-//!     {
-//!         let mut fbuf = RawFrameBuf::<Rgb565, _>::new(&mut frame_buffer, WIDTH, HEIGHT);
+//! // Create the framebuffer
+//! let mut fbuf = RawFrameBuf::<Rgb565, _>::new(&mut frame_buffer[..], WIDTH, HEIGHT);
 //!
-//!         // 3. Draw a scene to the in-memory framebuffer.
-//!         fbuf.clear(Rgb565::BLACK).unwrap();
-//!         Circle::new(Point::new(64, 64), 30)
-//!             .into_styled(PrimitiveStyle::with_fill(Rgb565::RED))
-//!             .draw(&mut fbuf)
-//!             .unwrap();
-//!     } // 4. `fbuf` is dropped, releasing the mutable borrow on `frame_buffer`.
+//! // Draw a scene to the in-memory framebuffer
+//! fbuf.clear(Rgb565::BLACK).unwrap();
+//! Circle::new(Point::new(32, 32), 20)
+//!     .into_styled(PrimitiveStyle::with_fill(Rgb565::RED))
+//!     .draw(&mut fbuf)
+//!     .unwrap();
 //!
-//!     // 5. The populated buffer is now sent to the display.
-//!     display.show_raw_data(&frame_buffer).await.unwrap();
-//! }
+//! // The frame_buffer now contains the rendered frame data
+//! assert_eq!(fbuf.width(), WIDTH);
+//! assert_eq!(fbuf.height(), HEIGHT);
 //! ```
 
 use embedded_graphics::{

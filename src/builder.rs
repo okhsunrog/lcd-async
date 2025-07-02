@@ -18,16 +18,18 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use mipidsi::{Builder, options::ColorOrder, models::ILI9342CRgb565};
+/// use lcd_async::{Builder, options::ColorOrder, models::ILI9342CRgb565};
 ///
-/// # let di = mipidsi::_mock::MockDisplayInterface;
-/// # let rst = mipidsi::_mock::MockOutputPin;
-/// # let mut delay = mipidsi::_mock::MockDelay;
+/// # tokio_test::block_on(async {
+/// # let di = lcd_async::_mock::MockDisplayInterface;
+/// # let rst = lcd_async::_mock::MockOutputPin;
+/// # let mut delay = lcd_async::_mock::MockDelay;
 /// let mut display = Builder::new(ILI9342CRgb565, di)
 ///     .reset_pin(rst)
 ///     .color_order(ColorOrder::Bgr)
 ///     .display_size(320, 240)
-///     .init(&mut delay).unwrap();
+///     .init(&mut delay).await.unwrap();
+/// # });
 /// ```
 pub struct Builder<DI, MODEL, RST>
 where
