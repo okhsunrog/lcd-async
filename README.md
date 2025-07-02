@@ -1,5 +1,10 @@
 # lcd-async
 
+[![Crates.io](https://img.shields.io/crates/v/lcd-async.svg)](https://crates.io/crates/lcd-async)
+[![Docs.rs](https://docs.rs/lcd-async/badge.svg)](https://docs.rs/lcd-async)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/okhsunrog/lcd-async/rust_ci.yml?logo=github)](https://github.com/okhsunrog/lcd-async/actions/workflows/rust_ci.yml)
+
 This crate is an `async`-first driver for TFT displays that implement the [MIPI Display Command Set](https://www.mipi.org/specifications/display-command-set).
 
 This project is a fork of the excellent [mipidsi](https://github.com/almindor/mipidsi) crate, but with a fundamentally different, `async`-native architecture. It is heavily inspired by the designs of [st7735-embassy](https://github.com/kalkyl/st7735-embassy) and [embedded-graphics-framebuf](https://github.com/bernii/embedded-graphics-framebuf).
