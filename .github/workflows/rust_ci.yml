@@ -59,7 +59,7 @@ jobs:
           - spi-st7789-esp32-c3
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
       - name: Build example
