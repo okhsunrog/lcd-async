@@ -92,10 +92,9 @@ impl IntoRawBytes for embedded_graphics::pixelcolor::Rgb666 {
 
     //scale up by 8bits/ 6bits = 256/64 = 4
     fn into_raw_bytes(self) -> <Self as IntoRawBytes>::Raw {
-        [self.r()* 4, self.g() *4, self.b()*4]
+        [self.r() * 4, self.g() * 4, self.b() * 4]
     }
 }
-
 
 impl IntoRawBytes for embedded_graphics::pixelcolor::Rgb888 {
     const BYTES_PER_PIXEL: usize = 3;
