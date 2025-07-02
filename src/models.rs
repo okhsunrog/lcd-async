@@ -249,3 +249,75 @@ impl<DiError> From<DiError> for ModelInitError<DiError> {
         Self::Interface(value)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use embedded_graphics::pixelcolor::Rgb565;
+
+    use crate::{
+        Builder,
+        _mock::{MockDelay, MockDisplayInterface},
+        dcs::SetAddressMode,
+        interface::InterfaceKind,
+        ConfigurationError, InitError,
+    };
+
+    use super::*;
+
+    struct OnlyOneKindModel(InterfaceKind);
+
+    impl Model for OnlyOneKindModel {
+        type ColorFormat = Rgb565;
+
+        const FRAMEBUFFER_SIZE: (u16, u16) = (16, 16);
+
+        async fn init<DELAY, DI>(
+            &mut self,
+            _di: &mut DI,
+            _delay: &mut DELAY,
+            _options: &ModelOptions,
+        ) -> Result<SetAddressMode, ModelInitError<DI::Error>>
+        where
+            DELAY: DelayNs,
+            DI: Interface,
+        {
+            if DI::KIND != self.0 {
+                return Err(ModelInitError::InvalidConfiguration(
+                    ConfigurationError::UnsupportedInterface,
+                ));
+            }
+
+            Ok(SetAddressMode::default())
+        }
+    }
+
+    #[test]
+    fn test_assert_interface_kind_serial() {
+        tokio_test::block_on(async {
+            Builder::new(
+                OnlyOneKindModel(InterfaceKind::Serial4Line),
+                MockDisplayInterface,
+            )
+            .init(&mut MockDelay)
+            .await
+            .unwrap();
+        });
+    }
+
+    #[test]
+    fn test_assert_interface_kind_parallel() {
+        tokio_test::block_on(async {
+            assert!(matches!(
+                Builder::new(
+                    OnlyOneKindModel(InterfaceKind::Parallel8Bit),
+                    MockDisplayInterface,
+                )
+                .init(&mut MockDelay)
+                .await,
+                Err(InitError::InvalidConfiguration(
+                    ConfigurationError::UnsupportedInterface
+                ))
+            ));
+        });
+    }
+}

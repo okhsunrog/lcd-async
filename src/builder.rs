@@ -150,7 +150,7 @@ where
     ) -> Result<Display<DI, MODEL, RST>, InitError<DI::Error, RST::Error>> {
         let to_u32 = |(a, b)| (u32::from(a), u32::from(b));
         let (width, height) = to_u32(self.options.display_size);
-        let (_offset_x, _offset_y) = to_u32(self.options.display_offset);
+        let (offset_x, offset_y) = to_u32(self.options.display_offset);
         let (max_width, max_height) = to_u32(MODEL::FRAMEBUFFER_SIZE);
 
         if width == 0 || height == 0 || width > max_width || height > max_height {
@@ -159,17 +159,17 @@ where
             ));
         }
 
-        // if width + offset_x > max_width {
-        //     return Err(InitError::InvalidConfiguration(
-        //         ConfigurationError::InvalidDisplayOffset,
-        //     ));
-        // }
+        if width + offset_x > max_width {
+            return Err(InitError::InvalidConfiguration(
+                ConfigurationError::InvalidDisplayOffset,
+            ));
+        }
 
-        // if height + offset_y > max_height {
-        //     return Err(InitError::InvalidConfiguration(
-        //         ConfigurationError::InvalidDisplayOffset,
-        //     ));
-        // }
+        if height + offset_y > max_height {
+            return Err(InitError::InvalidConfiguration(
+                ConfigurationError::InvalidDisplayOffset,
+            ));
+        }
 
         match self.rst {
             Some(ref mut rst) => {
@@ -268,4 +268,117 @@ impl digital::OutputPin for NoResetPin {
 
 impl digital::ErrorType for NoResetPin {
     type Error = core::convert::Infallible;
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        _mock::{MockDelay, MockDisplayInterface, MockOutputPin},
+        models::ILI9341Rgb565,
+    };
+
+    use super::*;
+
+    #[test]
+    fn init_without_reset_pin() {
+        tokio_test::block_on(async {
+            let _: Display<_, _, NoResetPin> = Builder::new(ILI9341Rgb565, MockDisplayInterface)
+                .init(&mut MockDelay)
+                .await
+                .unwrap();
+        });
+    }
+
+    #[test]
+    fn init_reset_pin() {
+        tokio_test::block_on(async {
+            let _: Display<_, _, MockOutputPin> = Builder::new(ILI9341Rgb565, MockDisplayInterface)
+                .reset_pin(MockOutputPin)
+                .init(&mut MockDelay)
+                .await
+                .unwrap();
+        });
+    }
+
+    #[test]
+    fn error_too_wide() {
+        tokio_test::block_on(async {
+            assert!(matches!(
+                Builder::new(ILI9341Rgb565, MockDisplayInterface)
+                    .reset_pin(MockOutputPin)
+                    .display_size(241, 320)
+                    .init(&mut MockDelay)
+                    .await,
+                Err(InitError::InvalidConfiguration(
+                    ConfigurationError::InvalidDisplaySize
+                ))
+            ));
+        });
+    }
+
+    #[test]
+    fn error_too_tall() {
+        tokio_test::block_on(async {
+            assert!(matches!(
+                Builder::new(ILI9341Rgb565, MockDisplayInterface)
+                    .reset_pin(MockOutputPin)
+                    .display_size(240, 321)
+                    .init(&mut MockDelay)
+                    .await,
+                Err(InitError::InvalidConfiguration(
+                    ConfigurationError::InvalidDisplaySize
+                )),
+            ));
+        });
+    }
+
+    #[test]
+    fn error_offset_invalid_x() {
+        tokio_test::block_on(async {
+            assert!(matches!(
+                Builder::new(ILI9341Rgb565, MockDisplayInterface)
+                    .reset_pin(MockOutputPin)
+                    .display_size(240, 320)
+                    .display_offset(1, 0)
+                    .init(&mut MockDelay)
+                    .await,
+                Err(InitError::InvalidConfiguration(
+                    ConfigurationError::InvalidDisplayOffset
+                )),
+            ));
+        });
+    }
+
+    #[test]
+    fn error_offset_invalid_y() {
+        tokio_test::block_on(async {
+            assert!(matches!(
+                Builder::new(ILI9341Rgb565, MockDisplayInterface)
+                    .reset_pin(MockOutputPin)
+                    .display_size(240, 310)
+                    .display_offset(0, 11)
+                    .init(&mut MockDelay)
+                    .await,
+                Err(InitError::InvalidConfiguration(
+                    ConfigurationError::InvalidDisplayOffset
+                )),
+            ));
+        });
+    }
+
+    #[test]
+    fn error_zero_size() {
+        tokio_test::block_on(async {
+            assert!(matches!(
+                Builder::new(ILI9341Rgb565, MockDisplayInterface)
+                    .reset_pin(MockOutputPin)
+                    .display_size(0, 0)
+                    .init(&mut MockDelay)
+                    .await,
+                Err(InitError::InvalidConfiguration(
+                    ConfigurationError::InvalidDisplaySize
+                )),
+            ));
+        });
+    }
 }
