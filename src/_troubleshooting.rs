@@ -33,24 +33,41 @@
 //! known by the display controller and must be manually set by the user as
 //! `Builder` settings when the display is initialized.
 //!
-//! To make it easier to identify the correct settings the `mipidsi` crate
+//! To make it easier to identify the correct settings the `lcd-async` crate
 //! provides a [`TestImage`](crate::TestImage), which can be used to verify the
 //! color settings and adjust them in case they are incorrect.
 //!
 //! ```
 //! use embedded_graphics::prelude::*;
-//! use mipidsi::{Builder, TestImage, models::ILI9486Rgb666};
+//! use embedded_graphics::pixelcolor::Rgb565;
+//! use lcd_async::{Builder, TestImage, models::ILI9341Rgb565, raw_framebuf::RawFrameBuf};
 //!
-//! # let di = mipidsi::_mock::MockDisplayInterface;
-//! # let rst = mipidsi::_mock::MockOutputPin;
-//! # let mut delay = mipidsi::_mock::MockDelay;
-//! let mut display = Builder::new(ILI9486Rgb666, di)
+//! # tokio_test::block_on(async {
+//! # let di = lcd_async::_mock::MockDisplayInterface;
+//! # let rst = lcd_async::_mock::MockOutputPin;
+//! # let mut delay = lcd_async::_mock::MockDelay;
+//! let mut display = Builder::new(ILI9341Rgb565, di)
 //!     .reset_pin(rst)
 //!     .init(&mut delay)
-//!     .unwrap();;
+//!     .await
+//!     .unwrap();
 //!
-//! TestImage::new().draw(&mut display)?;
+//! // Create framebuffer for drawing
+//! const WIDTH: usize = 240;
+//! const HEIGHT: usize = 320;
+//! let mut buffer = [0u8; WIDTH * HEIGHT * 2]; // 2 bytes per pixel for RGB565
+//! let mut framebuf = RawFrameBuf::<Rgb565, _>::new(&mut buffer[..], WIDTH, HEIGHT);
+//!
+//! // Draw test image to framebuffer
+//! TestImage::new().draw(&mut framebuf)?;
+//!
+//! // IMPORTANT: After drawing to the framebuffer, you must send it to the display!
+//! // This is the key step that actually updates the screen.
+//! // display.show_raw_data(0, 0, WIDTH as u16, HEIGHT as u16, &buffer).await.unwrap();
+//!
+//! // For a complete working example, see: examples/spi-st7789-esp32-c3/src/main.rs
 //! # Ok::<(), core::convert::Infallible>(())
+//! # });
 //! ```
 //!
 //! The expected output from drawing the test image is:
@@ -67,13 +84,16 @@
 //!
 //! ```
 //! # use embedded_graphics::prelude::*;
-//! # use mipidsi::{Builder, TestImage, models::ILI9486Rgb666};
+//! # use embedded_graphics::pixelcolor::Rgb565;
+//! # use lcd_async::{Builder, TestImage, models::ILI9341Rgb565, raw_framebuf::RawFrameBuf};
 //! #
-//! # let di = mipidsi::_mock::MockDisplayInterface;
-//! # let mut delay = mipidsi::_mock::MockDelay;
-//! # let mut display = Builder::new(ILI9486Rgb666, di)
-//! .color_order(mipidsi::options::ColorOrder::Bgr)
-//! # .init(&mut delay).unwrap();
+//! # tokio_test::block_on(async {
+//! # let di = lcd_async::_mock::MockDisplayInterface;
+//! # let mut delay = lcd_async::_mock::MockDelay;
+//! # let mut display = Builder::new(ILI9341Rgb565, di)
+//! .color_order(lcd_async::options::ColorOrder::Bgr)
+//! # .init(&mut delay).await.unwrap();
+//! # });
 //! ```
 //!
 //! ### Wrong color inversion
@@ -82,13 +102,16 @@
 //!
 //! ```
 //! # use embedded_graphics::prelude::*;
-//! # use mipidsi::{Builder, TestImage, models::ILI9486Rgb666};
+//! # use embedded_graphics::pixelcolor::Rgb565;
+//! # use lcd_async::{Builder, TestImage, models::ILI9341Rgb565, raw_framebuf::RawFrameBuf};
 //! #
-//! # let di = mipidsi::_mock::MockDisplayInterface;
-//! # let mut delay = mipidsi::_mock::MockDelay;
-//! # let mut display = Builder::new(ILI9486Rgb666, di)
-//! .invert_colors(mipidsi::options::ColorInversion::Inverted)
-//! # .init(&mut delay).unwrap();
+//! # tokio_test::block_on(async {
+//! # let di = lcd_async::_mock::MockDisplayInterface;
+//! # let mut delay = lcd_async::_mock::MockDelay;
+//! # let mut display = Builder::new(ILI9341Rgb565, di)
+//! .invert_colors(lcd_async::options::ColorInversion::Inverted)
+//! # .init(&mut delay).await.unwrap();
+//! # });
 //! ```
 //!
 //! ### Wrong subpixel order and color inversion
@@ -97,12 +120,15 @@
 //!
 //! ```
 //! # use embedded_graphics::prelude::*;
-//! # use mipidsi::{Builder, TestImage, models::ILI9486Rgb666};
+//! # use embedded_graphics::pixelcolor::Rgb565;
+//! # use lcd_async::{Builder, TestImage, models::ILI9341Rgb565, raw_framebuf::RawFrameBuf};
 //! #
-//! # let di = mipidsi::_mock::MockDisplayInterface;
-//! # let mut delay = mipidsi::_mock::MockDelay;
-//! # let mut display = Builder::new(ILI9486Rgb666, di)
-//! .color_order(mipidsi::options::ColorOrder::Bgr)
-//! .invert_colors(mipidsi::options::ColorInversion::Inverted)
-//! # .init(&mut delay).unwrap();
+//! # tokio_test::block_on(async {
+//! # let di = lcd_async::_mock::MockDisplayInterface;
+//! # let mut delay = lcd_async::_mock::MockDelay;
+//! # let mut display = Builder::new(ILI9341Rgb565, di)
+//! .color_order(lcd_async::options::ColorOrder::Bgr)
+//! .invert_colors(lcd_async::options::ColorInversion::Inverted)
+//! # .init(&mut delay).await.unwrap();
+//! # });
 //! ```

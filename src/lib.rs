@@ -55,7 +55,8 @@
 //!
 //! ## Troubleshooting
 //!
-//! If you experience issues such as blank screens or incorrect colors, refer to the troubleshooting section in the README or open an issue on the repository.
+//! Refer to the [troubleshooting guide](_troubleshooting)
+//! if you experience problems like a blank screen or incorrect colors.
 //!
 //! ## License
 //!
