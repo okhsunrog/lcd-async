@@ -1,6 +1,65 @@
 #![no_std]
 // associated re-typing not supported in rust yet
 #![allow(clippy::type_complexity)]
+#![warn(missing_docs)]
+
+//!
+//! # lcd-async
+//!
+//! An **async-first** display driver for TFT displays implementing the [MIPI Display Command Set](https://www.mipi.org/specifications/display-command-set).
+//!
+//! This crate is a fork of [mipidsi](https://github.com/almindor/mipidsi), redesigned for modern, async-native embedded Rust. It features a framebuffer-centric workflow, enabling efficient, non-blocking rendering and seamless integration with async runtimes like [embassy](https://embassy.dev/).
+//!
+//! ## Key Features
+//!
+//! - **Fully Asynchronous:** All display I/O is performed via async traits, making it ideal for async runtimes and DMA-driven workflows.
+//! - **Framebuffer-Based Drawing:** Draw your scene into an in-memory buffer using `embedded-graphics`, then send the entire frame to the display in one efficient async operation.
+//! - **Separation of Concerns:** Drawing is synchronous and CPU-bound; sending to the display is async and I/O-bound. This enables double buffering and advanced rendering patterns.
+//! - **Multiple Interface Support:**
+//!   - SPI ([`interface::SpiInterface`])
+//!   - 8080-style parallel via GPIO ([`interface::ParallelInterface`])
+//!
+//! ## Supported Models
+//!
+//! - GC9107
+//! - GC9A01
+//! - ILI9225
+//! - ILI9341
+//! - ILI9342C
+//! - ILI9486
+//! - ILI9488
+//! - RM67162
+//! - ST7735
+//! - ST7789
+//! - ST7796
+//!
+//! ## Example: Minimal Framebuffer Workflow
+//!
+//! ```rust
+//! use embedded_graphics::prelude::*;
+//! use embedded_graphics::pixelcolor::Rgb565;
+//! use embedded_graphics::primitives::{Circle, PrimitiveStyle};
+//! use lcd_async::raw_framebuf::RawFrameBuf;
+//!
+//! const WIDTH: usize = 240;
+//! const HEIGHT: usize = 240;
+//! let mut buffer = [0u8; WIDTH * HEIGHT * 2];
+//! let mut fbuf = RawFrameBuf::<Rgb565, _>::new(&mut buffer[..], WIDTH, HEIGHT);
+//! fbuf.clear(Rgb565::BLACK).unwrap();
+//! Circle::new(Point::new(120, 120), 80)
+//!     .into_styled(PrimitiveStyle::with_fill(Rgb565::GREEN))
+//!     .draw(&mut fbuf)
+//!     .unwrap();
+//! // See the examples/ directory for full async display usage
+//! ```
+//!
+//! ## Troubleshooting
+//!
+//! If you experience issues such as blank screens or incorrect colors, refer to the troubleshooting section in the README or open an issue on the repository.
+//!
+//! ## License
+//!
+//! Licensed under MIT, same as the original mipidsi crate.
 
 use dcs::SetAddressMode;
 
