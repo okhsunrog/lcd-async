@@ -117,7 +117,7 @@ async fn main(_spawner: Spawner) {
     info!("Display initialized!");
 
     // Initialize frame buffer
-    let frame_buffer = FRAME_BUFFER.init([0; FRAME_SIZE]);
+    let frame_buffer = FRAME_BUFFER.init_with(|| [0; FRAME_SIZE]);
 
     // Create a framebuffer for drawing
     let mut raw_fb =
