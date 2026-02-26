@@ -4,6 +4,7 @@ use super::DcsCommand;
 
 /// Set Page Address
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SetPageAddress {
     start_row: u16,
     end_row: u16,

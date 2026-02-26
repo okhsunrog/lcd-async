@@ -27,6 +27,7 @@ use super::{Interface, InterfaceKind};
 ///
 /// Wraps errors from the SPI bus or the data/command (DC) pin.
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SpiError<SPI, DC> {
     /// SPI bus error
     Spi(SPI),

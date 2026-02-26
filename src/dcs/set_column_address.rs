@@ -4,6 +4,7 @@ use super::DcsCommand;
 
 /// Set Column Address
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SetColumnAddress {
     start_column: u16,
     end_column: u16,

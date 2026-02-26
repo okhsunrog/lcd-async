@@ -1,5 +1,6 @@
 /// Display rotation.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Rotation {
     /// No rotation.
     Deg0,
@@ -63,6 +64,7 @@ impl Rotation {
 ///
 /// The error type returned by [`Rotation::try_from_degree`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct InvalidAngleError;
 
 /// Display orientation.
@@ -95,6 +97,7 @@ pub struct InvalidAngleError;
 /// ```
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct Orientation {
     /// Rotation.
     pub rotation: Rotation,
@@ -170,6 +173,7 @@ impl Default for Orientation {
 /// A memory mapping describes how a framebuffer is mapped to the physical
 /// row and columns of a display.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct MemoryMapping {
     /// Rows and columns are swapped.
     pub swap_rows_and_columns: bool,

@@ -65,6 +65,7 @@ impl ModelOptions {
 
 /// Color inversion.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ColorInversion {
     /// Normal colors.
     #[default]
@@ -75,6 +76,7 @@ pub enum ColorInversion {
 
 /// Vertical refresh order.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum VerticalRefreshOrder {
     /// Refresh from top to bottom.
     #[default]
@@ -96,6 +98,7 @@ impl VerticalRefreshOrder {
 
 /// Horizontal refresh order.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum HorizontalRefreshOrder {
     /// Refresh from left to right.
     #[default]
@@ -119,6 +122,7 @@ impl HorizontalRefreshOrder {
 ///
 /// Defaults to left to right, top to bottom.
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct RefreshOrder {
     /// Vertical refresh order.
     pub vertical: VerticalRefreshOrder,
@@ -156,6 +160,7 @@ impl RefreshOrder {
 
 /// Tearing effect output setting.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum TearingEffect {
     /// Disable output.
     Off,
@@ -167,6 +172,7 @@ pub enum TearingEffect {
 
 /// Subpixel order.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ColorOrder {
     /// RGB subpixel order.
     #[default]

@@ -57,6 +57,7 @@ impl<T: Interface + ?Sized> Interface for &mut T {
 /// Specifies the kind of physical connection to the display controller that is
 /// supported by this interface.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[non_exhaustive]
 pub enum InterfaceKind {
     /// Serial interface with data/command pin.

@@ -4,6 +4,7 @@ use super::DcsCommand;
 
 /// Set Tearing Effect
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SetTearingEffect(TearingEffect);
 
 impl SetTearingEffect {

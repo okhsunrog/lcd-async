@@ -9,6 +9,7 @@ use super::DcsCommand;
 
 /// Set Address Mode
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SetAddressMode(u8);
 
 impl SetAddressMode {

@@ -4,6 +4,7 @@ use super::DcsCommand;
 
 /// Set Scroll Start
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SetScrollStart(u16);
 
 impl SetScrollStart {

@@ -145,6 +145,7 @@ generic_bus! {
 
 /// Parallel interface error
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ParallelError<BUS, DC, WR> {
     /// Bus error
     Bus(BUS),

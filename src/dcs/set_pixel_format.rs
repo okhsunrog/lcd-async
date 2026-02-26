@@ -4,6 +4,7 @@ use super::DcsCommand;
 
 /// Set Pixel Format
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SetPixelFormat(PixelFormat);
 
 impl SetPixelFormat {
@@ -28,6 +29,7 @@ impl DcsCommand for SetPixelFormat {
 /// Bits per pixel for DBI and DPI fields of [PixelFormat]
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[repr(u8)]
 pub enum BitsPerPixel {
     /// 3 bits per pixel.
@@ -48,6 +50,7 @@ pub enum BitsPerPixel {
 /// Defines pixel format as combination of DPI and DBI
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct PixelFormat {
     dpi: BitsPerPixel,
     dbi: BitsPerPixel,

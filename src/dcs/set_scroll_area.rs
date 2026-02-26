@@ -4,6 +4,7 @@ use super::DcsCommand;
 
 /// Set Scroll Area
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct SetScrollArea {
     tfa: u16,
     vsa: u16,
