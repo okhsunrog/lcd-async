@@ -64,33 +64,23 @@ impl ModelOptions {
 }
 
 /// Color inversion.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub enum ColorInversion {
     /// Normal colors.
+    #[default]
     Normal,
     /// Inverted colors.
     Inverted,
 }
 
-impl Default for ColorInversion {
-    fn default() -> Self {
-        Self::Normal
-    }
-}
-
 /// Vertical refresh order.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub enum VerticalRefreshOrder {
     /// Refresh from top to bottom.
+    #[default]
     TopToBottom,
     /// Refresh from bottom to top.
     BottomToTop,
-}
-
-impl Default for VerticalRefreshOrder {
-    fn default() -> Self {
-        Self::TopToBottom
-    }
 }
 
 impl VerticalRefreshOrder {
@@ -105,18 +95,13 @@ impl VerticalRefreshOrder {
 }
 
 /// Horizontal refresh order.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub enum HorizontalRefreshOrder {
     /// Refresh from left to right.
+    #[default]
     LeftToRight,
     /// Refresh from right to left.
     RightToLeft,
-}
-
-impl Default for HorizontalRefreshOrder {
-    fn default() -> Self {
-        Self::LeftToRight
-    }
 }
 
 impl HorizontalRefreshOrder {
@@ -181,16 +166,11 @@ pub enum TearingEffect {
 }
 
 /// Subpixel order.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum ColorOrder {
     /// RGB subpixel order.
+    #[default]
     Rgb,
     /// BGR subpixel order.
     Bgr,
-}
-
-impl Default for ColorOrder {
-    fn default() -> Self {
-        Self::Rgb
-    }
 }
